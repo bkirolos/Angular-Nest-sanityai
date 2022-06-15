@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Dev Deploy 
+name: Dev Deploy
 
 # Controls when the workflow will run
 on:
@@ -22,7 +22,7 @@ jobs:
     steps:
       # need checkout before using docker-compose-remote-action
       - uses: actions/checkout@v2
-      
+
       - name: Install SSH Key
         uses: shimataro/ssh-key-action@v2
         with:
@@ -34,16 +34,15 @@ jobs:
 
       - name: Stop old versions
         run: ssh ubuntu@${{ secrets.SSH_HOST }} 'pm2 stop server; pm2 stop client;'
-        
+
       - name: Deploy with rsync
         run: rsync -avz ./ ubuntu@${{ secrets.SSH_HOST }}:/apps/tulsa-remote-live/ --delete
-        
+
       - name: Copy ENV file
         run: ssh ubuntu@${{ secrets.SSH_HOST }} 'cp /home/ubuntu/.env.staging /apps/tulsa-remote-live/server/.env'
-        
+
       - name: Start Backend
         run: ssh ubuntu@${{ secrets.SSH_HOST }} 'cd /apps/tulsa-remote-live/server && npm install && nest build && pm2 start server'
-        
+
       - name: Start Frontend
         run: ssh ubuntu@${{ secrets.SSH_HOST }} 'cd /apps/tulsa-remote-live/client && npm install && ng build --prod && pm2 start client'
-        
