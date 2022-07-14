@@ -51,7 +51,7 @@ export class GoogleMapsService {
 					const street1 = [streetNumber, streetName].filter((p) => p).join(' ');
 					const city = this.extractAddressComponentByType(result.address_components, 'locality');
 					const state = this.extractAddressComponentByType(result.address_components, 'administrative_area_level_1');
-					const stateName = this.extractAddressComponentByType(result.address_components, 'administrative_area_level_1', true);
+					const stateName = this.extractAddressComponentByType(result.address_components, 'administrative_area_level_1', false);
 					const zipcode = this.extractAddressComponentByType(result.address_components, 'postal_code');
 					const formatted = result.formatted_address;
 					const info = { street1, street2: aptNumber, city, state, zipcode, formatted, stateName };
