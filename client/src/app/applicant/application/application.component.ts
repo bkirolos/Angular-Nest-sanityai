@@ -9,6 +9,15 @@ import { ApplicationResponse } from '@server/application-response/application-re
 import { ApplicationResponseService } from './application-response.service';
 import packageJson from '../../../../package.json';
 
+var sourceMap = new Map();
+sourceMap.set('Work', 'bummer_worktype');
+sourceMap.set('Full-Time Employee', 'bummer_fulltime');
+sourceMap.set('Independent Contractor','bummer_independentcontractor');
+sourceMap.set('Age','bummer_birthdate');
+sourceMap.set('Citizenship','bummer_citizenship');
+sourceMap.set('Location','bummer_zipcode');
+sourceMap.set('Verification','bummer_verification');
+
 @Component({
 	selector: 'app-application',
 	templateUrl: './application.component.html',
@@ -116,7 +125,7 @@ export class ApplicationComponent implements OnInit {
 		});
 		this.response.utmCodes = this.applicationService.utm_codes;
 		this.response.application = this.application;
-		this.response.lastPage = this.page.name;
+		this.response.lastPage = this.page.title;
 		this.response.updateDate = new Date();
 		console.log('ApplicationComponent.saveResponse: response=%o', this.response);
 		this.response = await this.responseService.submitResponse(this.response);
@@ -194,7 +203,8 @@ export class ApplicationComponent implements OnInit {
 
 		const gtmTag = {
 			event: 'loadPage',
-			pageName: this.page.name
+			pageName: this.page.name,
+			pageSource: this.page.title
 		};
 		this.googleTagManagerService.pushTag(gtmTag);
 
@@ -386,15 +396,20 @@ export class ApplicationComponent implements OnInit {
 	}
 
 	async rejectResponse() {
+		var prevPage = this.response.lastPage;
 		this.response.status = 'rejected';
-		this.response.lastPage = this.page.name;
+		this.response.lastPage = this.page.title;
 		this.response = await this.responseService.submitResponse(this.response);
 		console.log('rejectResponse: response=%o', this.response);
 		this.saveResponse();
 
+		var bummerEvent = sourceMap.get(prevPage);
+		if (!bummerEvent)
+			bummerEvent = 'bummer_unknown';
 		this.googleTagManagerService.pushTag({
-			event: 'bummer',
-			pageName: this.page.name
+			event: bummerEvent,
+			pageName: this.page.name,
+			pageSource: prevPage
 		});
 	}
 
@@ -412,7 +427,8 @@ export class ApplicationComponent implements OnInit {
 		try {
 			this.googleTagManagerService.pushTag({
 				event: 'submit',
-				pageName: this.page.name
+				pageName: this.page.name,
+				pageSource: this.page.title
 			});
 
 			if (window['gtag']) {
