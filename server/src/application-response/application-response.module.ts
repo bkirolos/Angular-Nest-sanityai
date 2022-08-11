@@ -6,10 +6,11 @@ import { SearchModule } from '@app/search';
 import { MongooseModule } from '@nestjs/mongoose';
 import { applicationResponseSchema } from './application-response.schema';
 import { BullhornModule } from 'src/bullhorn/bullhorn.module';
+import { SalesforceModule } from 'src/salesforce/salesforce.module';
 import { UtilityModule } from '@app/utility';
 
 @Module({
-	imports: [DatabaseModule, MongooseModule.forFeature([{ name: 'ApplicationResponse', schema: applicationResponseSchema }]), SearchModule, BullhornModule, UtilityModule],
+	imports: [DatabaseModule, MongooseModule.forFeature([{ name: 'ApplicationResponse', schema: applicationResponseSchema }]), SearchModule, BullhornModule, SalesforceModule, UtilityModule],
 	controllers: [ApplicationResponseController],
 	providers: [ApplicationResponseService],
 	exports: [ApplicationResponseService]

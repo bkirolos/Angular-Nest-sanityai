@@ -1,20 +1,20 @@
-Tulsa Remote Application
-========================
+# Tulsa Remote Application
 
+- [Local Installation](#local-install)
+- [Staging Deployment](#staging-deployment)
+- [Production Deployment](#production-deployment)
 
-
-Install
--------
+## Local Install
 
 The project is divided into frontend (`client`) and backend (`server`).
 
-Install frontend:
+- Install frontend:
 ```
 cd client
 npm install
 ```
 
-Install backend:
+- Install backend:
 ```
 cd server
 npm install
@@ -23,49 +23,18 @@ cp .env.default .env
 
 Note: The server expects a local instance of MongoDB running.
 
+- Run `npm start` in both the `client` and `server` directories.
+
 Upon first npm start in server directory, a default admin user will be created with the following login credentials:
 email: nitwit@gitwit.com
 password: admin1234
 
+# Deployment
+Note: For right now, any changes to the `.env` files need to be made manually on the server. They are located in the `ubuntu` user's home directory. The deployment process copies this file to the directory where the application runs.
 
-Run
----
+## Staging Deployment
+- Merge changes from the `development` branch into staging. This will kick off a GH action to deploy the branch to the [staging environment](https://appstaging.tulsaremote.com/). 
 
-Run `npm start` in both the `client` and `server` directories.
-
-
-Production Build
-----------------
-#### Prep:
-- Increment versions in client/server's package.json
-- Commit on `master`
-- Checkout `dist`
-- Merge in `master`
-#### Client Build:
-- Run `ng build --prod` from `client/`
-- Run `git add -f dist/` from `client`		# We have `dist/` inside of .gitignore, so we need the force flag
-#### Server Build:
-- Run `nest build` from `server/`
-- Run `git add -f dist/` from `server`		# We have `dist/` inside of .gitignore, so we need the force flag
-#### Commit and Push
-- `git commit -m "Dist build of v${insert-version-here}"
-- `git push`
-
-
-Production Deployment
----------------------
-From the AWS server (`ssh tr.gitwit.com`):
-- `cd /apps/tulsa-remote-live`			# Probably should deploy to staging first
-- `git pull`
-- `pm2 list`
-- `pm2 restart X`						# X is the instance number from above
-- TEST THAT IS WORKED
-
-
-# Rename files/contents
-```
-find . -type f -exec rename 's/product/application-response/' {} \;
-find . -type f -exec sed -i 's/product/applicationResponse/g' {} \;
-find . -type f -exec sed -i 's/Product/ApplicationResponse/g' {} \;
-```
-
+## Production Deployment
+- Increment the version number in the `package.json` file for both the [client](https://github.com/tulsateam/tulsa-remote-application/blob/master/client/package.json#L3) and [server](https://github.com/tulsateam/tulsa-remote-application/blob/master/server/package.json#L3). Note: the version number must match the `X.Y.Z` format.
+- Rebase and merge master off the staging branch. This will kick off a GH action to deploy the branch to the [production environment](https://https://apply.tulsaremote.com/). 

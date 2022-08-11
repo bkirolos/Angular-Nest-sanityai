@@ -19,7 +19,8 @@ export class SidenavComponent implements OnInit {
 	menuItems = [
 		{ name: 'Applications', url: '/admin/application', icon: 'fas fa-list-alt' },
 		{ name: 'Application Responses', url: '/admin/application-response', icon: 'fas fa-list-alt' },
-		{ name: 'Users', url: '/admin/user', icon: 'fas fa-users' }
+		{ name: 'Users', url: '/admin/user', icon: 'fas fa-users' },
+		{ name: 'Settings', url: '/admin/settings', icon: 'fas fa-wrench' }
 	];
 
 	constructor(private userChangeService: UserChangeService, private userService: UserService, private router: Router) {}

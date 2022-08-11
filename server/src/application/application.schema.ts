@@ -23,6 +23,7 @@ export const applicationSchema = new mongoose.Schema(
 								label: String,
 								key: String,
 								bullhornKey: String,
+								salesforceKey: String,
 								optional: Boolean,
 								options: [
 									{

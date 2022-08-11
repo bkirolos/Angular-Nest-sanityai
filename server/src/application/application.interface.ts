@@ -16,6 +16,7 @@ export interface ApplicationQuestion {
 	type: ApplicationQuestionType;
 	key: string;
 	bullhornKey?: string;
+	salesforceKey?: string;
 	label: string;
 	options?: ApplicationQuestionOption[];
 	optional?: boolean;

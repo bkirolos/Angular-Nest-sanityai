@@ -100,6 +100,15 @@
 								[disabled]="readonly || question.type === 'label'"
 							/>
 						</div>
+						<div class="col-2">
+							<label class="form-label">Salesforce Key</label>
+							<input
+								class="form-control"
+								name="questionSalesforceKey{{ questionIndex }}"
+								[(ngModel)]="question.salesforceKey"
+								[disabled]="readonly || question.type === 'label'"
+							/>
+						</div>
 						<div class="col-4">
 							<label class="form-label">Question Label</label>
 							<input class="form-control" name="questionLabel{{ questionIndex }}" [(ngModel)]="question.label" [disabled]="readonly" required />

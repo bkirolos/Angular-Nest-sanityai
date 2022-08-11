@@ -4,10 +4,16 @@ import * as crypto from 'crypto';
 import { UserService } from 'src/user/user.service';
 import { User } from 'src/user/user.interface';
 import { ConfigService } from '@nestjs/config';
+import { SalesforceService } from 'src/salesforce/salesforce.service';
+import * as JSForce from 'jsforce';
 
 @Injectable()
 export class AuthService {
-	constructor(private userService: UserService, private jwtService: JwtService, private configService: ConfigService) {}
+	constructor(
+		private userService: UserService,
+		private jwtService: JwtService,
+		private salesforceService: SalesforceService,
+		private configService: ConfigService) {}
 
 	async validateUser(username: string, password: string): Promise<User> {
 		username = String(username).trim().toLocaleLowerCase();
@@ -29,6 +35,14 @@ export class AuthService {
 			user: user
 		};
 	}
+
+	getOAuth2AuthorizationUrl() {
+  	return this.salesforceService.getOAuth2AuthorizationUrl();
+  }
+
+  oauth2SetAccesCode(accessCode: string) {
+  	this.salesforceService.oauth2SetAccesCode(accessCode);
+  }
 
 	private hashString(str: string, salt: string = '', rounds = 16): string {
 		for (let i = 0; i < rounds; i++) str = this.sha256(str + salt);

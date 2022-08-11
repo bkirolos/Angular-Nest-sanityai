@@ -75,4 +75,12 @@ export class ApplicationService {
 
 		return application.save();
 	}
+	
+	static findQuestionByQuestionKey(application: Application, questionKey: string) {
+		const section = application.sections.find((s) => s.pages.find((p) => p.questions.find((q) => q.key === questionKey)));
+		if (!section) return null;
+		const page = section.pages.find((p) => p.questions.find((q) => q.key === questionKey));
+		if (!page) return null;
+		return page.questions.find((q) => q.key === questionKey);
+	}
 }

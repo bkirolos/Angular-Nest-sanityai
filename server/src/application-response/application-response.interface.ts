@@ -7,13 +7,21 @@ export interface ApplicationResponseQuestionAnswer {
 	answerLabel?: string;
 }
 
-export type ApplicationResponseStatus = 'rejected' | 'submitted' | 'pending';
+export interface UtmCodes {
+	utm_source?: string;
+	utm_medium?: string;
+	utm_content?: string;
+	utm_campaign?: string;
+	utm_term?: string;
+}
+
+export type ApplicationResponseStatus = 'rejected' | 'submitted' | 'pending' | 'processed';
 
 export interface ApplicationResponse {
 	_id?: any;
 
 	status: ApplicationResponseStatus;
-	utmCodes: object;
+	utmCodes: UtmCodes;
 	lastPage?: string;
 	ipAddress?: string;
 
@@ -22,6 +30,8 @@ export interface ApplicationResponse {
 
 	bullhornCandidateId?: number;
 	bullhornJobSubId?: number;
+
+	salesforceApplicationId?: string;
 
 	bummerEmail?: string; // If the user bummered out and left an email
 

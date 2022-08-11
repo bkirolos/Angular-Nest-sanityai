@@ -41,7 +41,7 @@ export class BullhornService {
 			password: this.configService.get('BULLHORN_PASSWORD')
 		});
 
-		this.login();
+		// this.login();
 		// this.testBullhorn();
 	}
 
@@ -54,7 +54,6 @@ export class BullhornService {
 
 	async testBullhorn() {
 		const loginResult = await this.bullhorn.login();
-		console.log('testBullhorn: Login successful'); //: loginResult=%o', loginResult);
 
 		// const personResult = await this.bullhorn.fetch('search/Candidate?query=Sergei');
 		// personResult.json().then(r => console.log('presons=%o',r));

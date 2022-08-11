@@ -9,7 +9,8 @@ import { SearchParams, SearchResult, SearchService } from '@app/search';
 import { LoggerService, PostmarkService, serialPromise } from '@app/utility';
 import { ApplicationResponse, ApplicationResponseDocument } from './application-response.schema';
 import { BullhornService } from 'src/bullhorn/bullhorn.service';
-import { Application } from 'src/application';
+import { SalesforceService } from 'src/salesforce/salesforce.service';
+import { ApplicationService } from 'src/application';
 import { ConfigService } from '@nestjs/config';
 
 export { ApplicationResponse, ApplicationResponseDocument };
@@ -22,26 +23,34 @@ export class ApplicationResponseService {
 		@InjectModel('ApplicationResponse') public responseModel: mongoose.Model<ApplicationResponseDocument>,
 		private documentService: DocumentService,
 		private searchService: SearchService,
-		private bullhornService: BullhornService,
+		private salesforceService: SalesforceService,
 		private configService: ConfigService,
 		private postmarkService: PostmarkService
 	) {
 		setTimeout(() => this.resubmitResponses(), 5000);
 	}
 
-	@Cron('0 3 * * * *')
+	@Cron('*/3 * * * * *')
 	async resubmitResponses() {
-		const responses = await this.responseModel.find({
-			status: 'submitted',
-			$or: [{ bullhornCandidateId: { $exists: false } }, { bullhornJobSubId: { $exists: false } }]
-		});
-		this.logger.log('resubmitResponses: responses=%o', responses.length);
-		return serialPromise(responses, (response: ApplicationResponseDocument) => {
-			return this.submitResponseToBullhorn(response).catch((err) => {
-				this.logger.error('resubmitResponses: submitResponseToBullhorn err=%o', err);
-				return null;
-			});
-		});
+		var processed = 0;
+		var responseLength = 1;
+		while (responseLength > 0) {
+			var responses = await this.responseModel.find({
+				status: 'submitted',
+				$or: [
+					{ salesforceApplicationId: { $exists: false } },
+				]
+			}, null, { skip: processed, limit: 100 });
+			responseLength = responses.length;
+			processed += responses.length;
+			for (const response of responses) {
+				await this.submitResponseToBullhornAndSalesforce(response).catch((err) => {
+					this.logger.error('resubmitResponses: submitResponseToBullhornAndSalesforce err=%o', err);
+					return null;
+				});
+			}
+		}
+		this.logger.log('resubmitResponses: processed ' + processed);
 	}
 
 	searchResponses(queryParams: object): Promise<SearchResult<ApplicationResponseDocument>> {
@@ -91,7 +100,25 @@ export class ApplicationResponseService {
 
 		this.postmarkService.sendEmail({
 			to,
-			subject: 'Tulsa Remote - Failed Submission',
+			subject: 'Tulsa Remote - Failed Bullhorn Submission',
+			html
+		});
+	}
+
+	onFailedSalesforceSubmission(response: ApplicationResponse, error: any) {
+		//console.log('Salesforce failed with error: ' + JSON.stringify(error));
+		const to = this.configService.get('FAILED_SALESFORCE_EMAIL');
+		if (!to) return;
+
+		const html =
+			`<p>Salesforce Failed with Error: <pre>${JSON.stringify(error)}</pre></p>` +
+			`<hr><p>applicationResponseId: ${response._id}</p><hr>` +
+
+			`<hr><pre>${JSON.stringify(response.questionAnswers)}</pre>`;
+
+		this.postmarkService.sendEmail({
+			to,
+			subject: 'Tulsa Remote - Failed Salesforce Submission',
 			html
 		});
 	}
@@ -108,9 +135,36 @@ export class ApplicationResponseService {
 			application: undefined,
 			questionAnswers: newDoc.questionAnswers.map((qa) => `${qa.questionKey}: ${qa.answer}`)
 		});
-		if (newDoc.status === 'submitted' && oldDoc?.status !== 'submitted') this.submitResponseToBullhorn(newDoc);
+		if (newDoc.status === 'submitted' && oldDoc?.status !== 'submitted') this.submitResponseToBullhornAndSalesforce(newDoc);
 	}
 
+	async submitResponseToBullhornAndSalesforce(response: ApplicationResponseDocument) {
+		this.prependHttpsForUrlQuestions(response);
+
+//		const bullhornPromise = this.submitResponseToBullhorn(response);
+		const salesforcePromise = this.submitResponseToSalesforce(response);
+
+    await Promise.all([/*bullhornPromise, */salesforcePromise]);
+	}
+
+	async submitResponseToSalesforce(response: ApplicationResponseDocument) {
+		try {
+			if (!response.salesforceApplicationId) {
+				const salesforceApplicationId = await this.salesforceService.addApplication(response);
+
+				if (salesforceApplicationId) {
+					response.status = 'processed';
+					response.salesforceApplicationId = salesforceApplicationId;
+					response.updateDate = new Date();
+					return response.save();
+				}
+			}
+		} catch (err) {
+			this.onFailedSalesforceSubmission(response, err?.stack || err);
+		}
+	}
+
+	/*
 	async submitResponseToBullhorn(response: ApplicationResponseDocument) {
 		this.logger.log('submitResponseToBullhorn: %o', {
 			...response.toObject(),
@@ -125,15 +179,11 @@ export class ApplicationResponseService {
 		const responseNoteLines = [];
 
 		response.questionAnswers.map((qa) => {
-			const question = this.findQuestionByQuestionKey(response.application, qa.questionKey);
+			const question = ApplicationService.findQuestionByQuestionKey(response.application, qa.questionKey);
 			if (!question) return;
-			if (question.type === 'url' && qa.answer) {
-				// Prepend https:// for url type questions
-				qa.answer = `https://${qa.answer}`;
-			}
 
 			const bullhornKey = question?.bullhornKey;
-			// console.log('submitResponseToBullhorn: qa=%o, bullhornKey=%o', qa, bullhornKey);
+			// console.log('submitResponseToBullhornAndSalesforce: qa=%o, bullhornKey=%o', qa, bullhornKey);
 
 			if (!bullhornKey) return;
 			const noteLine = `<b>${question.label || question.key}</b><br>${qa.answerLabel || qa.answer}`;
@@ -169,10 +219,10 @@ export class ApplicationResponseService {
 		const partnerNote = partnerNoteLines.join('<br><br>');
 		const responseNote = responseNoteLines.join('<br><br>');
 
-		// console.log('submitResponseToBullhorn: candidate=%o', candidate);
-		// console.log('submitResponseToBullhorn: appNote=%s', appNote);
-		// console.log('submitResponseToBullhorn: partnerNote=%s', partnerNote);
-		// console.log('submitResponseToBullhorn: responseNote=%s', responseNote);
+		// console.log('submitResponseToBullhornAndSalesforce: candidate=%o', candidate);
+		// console.log('submitResponseToBullhornAndSalesforce: appNote=%s', appNote);
+		// console.log('submitResponseToBullhornAndSalesforce: partnerNote=%s', partnerNote);
+		// console.log('submitResponseToBullhornAndSalesforce: responseNote=%s', responseNote);
 
 		try {
 			if (!response.bullhornCandidateId) {
@@ -216,12 +266,16 @@ export class ApplicationResponseService {
 			this.onFailedBullhornSubmission(response, responseNote, err?.stack || err);
 		}
 	}
+	*/
 
-	private findQuestionByQuestionKey(application: Application, questionKey: string) {
-		const section = application.sections.find((s) => s.pages.find((p) => p.questions.find((q) => q.key === questionKey)));
-		if (!section) return null;
-		const page = section.pages.find((p) => p.questions.find((q) => q.key === questionKey));
-		if (!page) return null;
-		return page.questions.find((q) => q.key === questionKey);
+	prependHttpsForUrlQuestions(response: ApplicationResponseDocument) {
+		response.questionAnswers.map((qa) => {
+			const question = ApplicationService.findQuestionByQuestionKey(response.application, qa.questionKey);
+			if (!question) return;
+			if (question.type === 'url' && qa.answer) {
+				// Prepend https:// for url type questions
+				qa.answer = `https://${qa.answer}`;
+			}
+		});
 	}
 }

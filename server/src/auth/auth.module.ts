@@ -7,9 +7,13 @@ import { LocalStrategy } from './local.strategy';
 import { JwtStrategy } from './jwt.strategy';
 import { AuthController } from './auth.controller';
 import { UserModule } from '../user/user.module';
+import { SalesforceService } from 'src/salesforce/salesforce.service';
+import { SalesforceModule } from 'src/salesforce/salesforce.module';
+
 
 @Module({
 	imports: [
+		SalesforceModule,
 		PassportModule,
 		forwardRef(() => UserModule),
 		JwtModule.registerAsync({

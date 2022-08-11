@@ -11,6 +11,7 @@ import { UserModule } from './user/user.module';
 import { ProductModule } from './product';
 import { ApplicationModule } from './application/application.module';
 import { BullhornModule } from './bullhorn/bullhorn.module';
+import { SalesforceModule } from './salesforce/salesforce.module';
 import { ApplicationResponseModule } from './application-response/application-response.module';
 
 @Module({
@@ -25,6 +26,7 @@ import { ApplicationResponseModule } from './application-response/application-re
 		ProductModule,
 		ApplicationModule,
 		BullhornModule,
+		SalesforceModule,
 		ApplicationResponseModule
 	],
 	controllers: [AppController],
