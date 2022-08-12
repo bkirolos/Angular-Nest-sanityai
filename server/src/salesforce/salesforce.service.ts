@@ -41,6 +41,7 @@ export class SalesforceService {
     if(accessToken && instanceUrl) {
     			if (refreshToken && refreshToken.value) {
 				this.connection = new JSForce.Connection({
+				  oauth2 : this.oauth2,
 				  instanceUrl : instanceUrl.value,
 				  refreshToken : refreshToken.value,
 				  accessToken : accessToken.value
@@ -48,6 +49,7 @@ export class SalesforceService {
 			}
 			else {
 				this.connection = new JSForce.Connection({
+				  oauth2 : this.oauth2,
 				  instanceUrl : instanceUrl.value,
 				  accessToken : accessToken.value
 				});
@@ -90,7 +92,7 @@ export class SalesforceService {
 			sfObject, 
 			(err, ret)  => {
 			  if (err || !ret.success) { 
-			  	return this.logger.error('SalesforceService.addApplication: err=%o resp=%o sfInput=%o', err,response,sfObject);
+			  	return this.logger.error('SalesforceService.addApplication: err=%o ', err);
 			  }
 			  this.logger.debug('SalesforceService.addApplication: Created record id : %o', ret.id);
 			}
