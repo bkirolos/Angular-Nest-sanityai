@@ -130,11 +130,13 @@ export class ApplicationResponseService {
 	}
 
 	async afterSave(newDoc: ApplicationResponseDocument, oldDoc: ApplicationResponseDocument) {
+		/*
 		this.logger.log('saveResponse: %o', {
 			...newDoc.toObject(),
 			application: undefined,
 			questionAnswers: newDoc.questionAnswers.map((qa) => `${qa.questionKey}: ${qa.answer}`)
 		});
+		*/
 		if (newDoc.status === 'submitted' && oldDoc?.status !== 'submitted') this.submitResponseToBullhornAndSalesforce(newDoc);
 	}
 
