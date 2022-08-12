@@ -30,7 +30,7 @@ export class ApplicationResponseService {
 		setTimeout(() => this.resubmitResponses(), 5000);
 	}
 
-	@Cron('*/3 * * * * *')
+	@Cron('0 3 * * * *')
 	async resubmitResponses() {
 		var processed = 0;
 		var responseLength = 1;
