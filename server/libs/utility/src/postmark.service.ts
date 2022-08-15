@@ -58,7 +58,10 @@ export class PostmarkService {
 		if (!params) return Promise.reject({ error: 'mailer.sendEmail(): Missing params' });
 		return new Promise((resolve, reject) => {
 			this.transport.sendMail(params, (err, result) => {
-				if (err) return reject(err);
+			if (err) {
+			this.logger.error('sendEmail: err=%o', err);
+		       	return reject(err);
+			}
 				delete params.html;
 				resolve(result);
 			});
