@@ -5,6 +5,7 @@ import * as postmarkTransport from 'nodemailer-postmark-transport';
 import * as EmailTemplate from 'email-templates';
 import { FileService } from './file.service';
 import { LoggerService } from './logger.service';
+import * as SendGrid from '@sendgrid/mail';
 
 export interface MailerParams {
 	to: string;
@@ -31,6 +32,13 @@ export class PostmarkService {
 	emailTemplate: EmailTemplate;
 
 	constructor(private configService: ConfigService, private fileService: FileService) {
+		console.log('creating postmark service');
+		const sendgridKey = this.configService.get('SENDGRID_APIKEY');
+		if (sendgridKey) {
+			SendGrid.setApiKey(sendgridKey);
+		} else {
+			this.logger.warn('SENDGRID_KEY not set');
+		}
 		const apiKey = this.configService.get('POSTMARK_APIKEY');
 		if (apiKey) {
 			this.transport = nodemailer.createTransport(
@@ -49,6 +57,16 @@ export class PostmarkService {
 				options: { extension: 'handlebars' }
 			}
 		});
+		console.log('sending test mail');
+		const msg = {
+			to: 'systemsgotony@gmail.com',
+			from: this.configService.get('POSTMARK_FROM'),
+			subject: ' test email',
+			text: 'test email text'
+		};
+		console.log('sending email ' + msg);
+		this.sendEmail(msg);
+		console.log('email sent');
 	}
 
 	sendEmail(params: MailerParams) {
@@ -56,7 +74,19 @@ export class PostmarkService {
 		if (!params.from) params.from = this.configService.get('POSTMARK_FROM');
 		this.logger.log('sendEmail: to=%o, subject=%o', params.to, params.subject);
 		if (!params) return Promise.reject({ error: 'mailer.sendEmail(): Missing params' });
+		const msg = {
+			to: params.to,
+			from: params.from,
+			subject: params.subject,
+			text: params.text
+		};
 		return new Promise((resolve, reject) => {
+			SendGrid.send(msg).then((response) => {
+				console.log('sendEmail response: ' + response[0].statusCode);
+			},(reject) => {
+				console.log('sendEmail reject: ' + reject);
+			});
+			/*
 			this.transport.sendMail(params, (err, result) => {
 			if (err) {
 			this.logger.error('sendEmail: err=%o', err);
@@ -65,6 +95,7 @@ export class PostmarkService {
 				delete params.html;
 				resolve(result);
 			});
+			*/
 		});
 	}
 
