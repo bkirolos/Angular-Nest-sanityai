@@ -33,6 +33,7 @@
     "@nestjs/passport": "^8.0.0",
     "@nestjs/platform-express": "^8.0.1",
     "@nestjs/schedule": "^1.0.2",
+    "@sendgrid/mail": "^7.7.0",
     "@types/jsforce": "^1.9.42",
     "@types/luxon": "^2.0.4",
     "bullhorn-api": "^1.0.1",
@@ -47,7 +48,7 @@
     "passport-local": "^1.0.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
-    "rxjs": "^6.6.6"
+    "rxjs": "^6.6.7"
   },
   "devDependencies": {
     "@nestjs/cli": "^8.0.2",

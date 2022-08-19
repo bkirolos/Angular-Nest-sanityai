@@ -65,6 +65,7 @@ export class ApplicationComponent implements OnInit {
 			const viewSection = this.application.sections.find((s) => s.pages.find((p) => p._id === viewPageId));
 			const viewPage = viewSection && viewSection.pages.find((p) => p._id === viewPageId);
 			if (viewPage) {
+				this.applicationService.utm_codes = { utm_source : this.route.snapshot.queryParams['utm_source'] };
 				this.response = {
 					status: 'pending',
 					utmCodes: this.applicationService.utm_codes,

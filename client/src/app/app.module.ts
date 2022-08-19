@@ -12,6 +12,9 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ActivatedRoute } from '@angular/router';
 
+import { LocationStrategy } from "@angular/common";
+import { PathPreserveQueryLocationStrategy } from "./preserve-query-params";
+
 @NgModule({
 	declarations: [AppComponent],
 	imports: [
@@ -25,7 +28,7 @@ import { ActivatedRoute } from '@angular/router';
 			id: 'GTM-5PLRRM9'
 		})
 	],
-	providers: [DatePipe, CurrencyPipe],
+	providers: [DatePipe, CurrencyPipe, { provide: LocationStrategy, useClass: PathPreserveQueryLocationStrategy }],
 	bootstrap: [AppComponent]
 })
 export class AppModule {
