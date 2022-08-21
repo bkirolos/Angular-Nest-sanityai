@@ -57,16 +57,6 @@ export class PostmarkService {
 				options: { extension: 'handlebars' }
 			}
 		});
-		console.log('sending test mail');
-		const msg = {
-			to: 'systemsgotony@gmail.com',
-			from: this.configService.get('POSTMARK_FROM'),
-			subject: ' test email',
-			text: 'test email text'
-		};
-		console.log('sending email ' + msg);
-		this.sendEmail(msg);
-		console.log('email sent');
 	}
 
 	sendEmail(params: MailerParams) {
@@ -78,6 +68,7 @@ export class PostmarkService {
 			to: params.to,
 			from: params.from,
 			subject: params.subject,
+			html: params.html,
 			text: params.text
 		};
 		return new Promise((resolve, reject) => {
