@@ -148,7 +148,7 @@ export class SalesforceService {
 		salesforceApplicationObject.UTM_Campaign_Name__c = response.utmCodes?.utm_campaign
 		salesforceApplicationObject.UTM_Campaign_Term__c = response.utmCodes?.utm_term
 
-		salesforceApplicationObject.ga_session_id__c = response.ga_session_id;
+		salesforceApplicationObject.ga_session_id__c = response.gaSessionId;
 
 		return salesforceApplicationObject;
 	}
