@@ -30,17 +30,16 @@ const common_1 = __webpack_require__(4);
 const config_1 = __webpack_require__(5);
 const schedule_1 = __webpack_require__(6);
 const database_1 = __webpack_require__(7);
-const search_1 = __webpack_require__(26);
+const search_1 = __webpack_require__(25);
 const utility_1 = __webpack_require__(11);
-const app_controller_1 = __webpack_require__(30);
-const app_service_1 = __webpack_require__(31);
-const auth_module_1 = __webpack_require__(32);
-const user_module_1 = __webpack_require__(51);
-const product_1 = __webpack_require__(59);
-const application_module_1 = __webpack_require__(65);
-const bullhorn_module_1 = __webpack_require__(67);
-const salesforce_module_1 = __webpack_require__(55);
-const application_response_module_1 = __webpack_require__(70);
+const app_controller_1 = __webpack_require__(29);
+const app_service_1 = __webpack_require__(30);
+const auth_module_1 = __webpack_require__(31);
+const user_module_1 = __webpack_require__(44);
+const product_1 = __webpack_require__(48);
+const application_module_1 = __webpack_require__(54);
+const bullhorn_module_1 = __webpack_require__(59);
+const application_response_module_1 = __webpack_require__(62);
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
@@ -56,7 +55,6 @@ AppModule = __decorate([
             product_1.ProductModule,
             application_module_1.ApplicationModule,
             bullhorn_module_1.BullhornModule,
-            salesforce_module_1.SalesforceModule,
             application_response_module_1.ApplicationResponseModule
         ],
         controllers: [app_controller_1.AppController],
@@ -104,8 +102,8 @@ exports.mongoose = void 0;
 const mongoose = __webpack_require__(8);
 exports.mongoose = mongoose;
 __exportStar(__webpack_require__(9), exports);
+__exportStar(__webpack_require__(23), exports);
 __exportStar(__webpack_require__(24), exports);
-__exportStar(__webpack_require__(25), exports);
 
 
 /***/ }),
@@ -131,8 +129,8 @@ const common_1 = __webpack_require__(4);
 const config_1 = __webpack_require__(5);
 const mongoose_1 = __webpack_require__(10);
 const utility_1 = __webpack_require__(11);
-const database_service_1 = __webpack_require__(24);
-const document_service_1 = __webpack_require__(25);
+const database_service_1 = __webpack_require__(23);
+const document_service_1 = __webpack_require__(24);
 const logger = new utility_1.LoggerService('DatabaseModule');
 let DatabaseModule = class DatabaseModule {
 };
@@ -458,20 +456,11 @@ const postmarkTransport = __webpack_require__(21);
 const EmailTemplate = __webpack_require__(22);
 const file_service_1 = __webpack_require__(16);
 const logger_service_1 = __webpack_require__(14);
-const SendGrid = __webpack_require__(23);
 let PostmarkService = class PostmarkService {
     constructor(configService, fileService) {
         this.configService = configService;
         this.fileService = fileService;
         this.logger = new logger_service_1.LoggerService('PostmarkService');
-        console.log('creating postmark service');
-        const sendgridKey = this.configService.get('SENDGRID_APIKEY');
-        if (sendgridKey) {
-            SendGrid.setApiKey(sendgridKey);
-        }
-        else {
-            this.logger.warn('SENDGRID_KEY not set');
-        }
         const apiKey = this.configService.get('POSTMARK_APIKEY');
         if (apiKey) {
             this.transport = nodemailer.createTransport(postmarkTransport({
@@ -497,18 +486,12 @@ let PostmarkService = class PostmarkService {
         this.logger.log('sendEmail: to=%o, subject=%o', params.to, params.subject);
         if (!params)
             return Promise.reject({ error: 'mailer.sendEmail(): Missing params' });
-        const msg = {
-            to: params.to,
-            from: params.from,
-            subject: params.subject,
-            html: params.html,
-            text: params.text
-        };
         return new Promise((resolve, reject) => {
-            SendGrid.send(msg).then((response) => {
-                console.log('sendEmail response: ' + response[0].statusCode);
-            }, (reject) => {
-                console.log('sendEmail reject: ' + reject);
+            this.transport.sendMail(params, (err, result) => {
+                if (err)
+                    return reject(err);
+                delete params.html;
+                resolve(result);
             });
         });
     }
@@ -568,12 +551,6 @@ module.exports = require("email-templates");
 
 /***/ }),
 /* 23 */
-/***/ ((module) => {
-
-module.exports = require("@sendgrid/mail");
-
-/***/ }),
-/* 24 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -595,7 +572,7 @@ exports.DatabaseService = DatabaseService;
 
 
 /***/ }),
-/* 25 */
+/* 24 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -647,7 +624,7 @@ exports.DocumentService = DocumentService;
 
 
 /***/ }),
-/* 26 */
+/* 25 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -662,9 +639,35 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__webpack_require__(26), exports);
 __exportStar(__webpack_require__(27), exports);
 __exportStar(__webpack_require__(28), exports);
-__exportStar(__webpack_require__(29), exports);
+
+
+/***/ }),
+/* 26 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SearchModule = void 0;
+const common_1 = __webpack_require__(4);
+const search_service_1 = __webpack_require__(27);
+let SearchModule = class SearchModule {
+};
+SearchModule = __decorate([
+    common_1.Module({
+        providers: [search_service_1.SearchService],
+        exports: [search_service_1.SearchService]
+    })
+], SearchModule);
+exports.SearchModule = SearchModule;
 
 
 /***/ }),
@@ -679,35 +682,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SearchModule = void 0;
-const common_1 = __webpack_require__(4);
-const search_service_1 = __webpack_require__(28);
-let SearchModule = class SearchModule {
-};
-SearchModule = __decorate([
-    common_1.Module({
-        providers: [search_service_1.SearchService],
-        exports: [search_service_1.SearchService]
-    })
-], SearchModule);
-exports.SearchModule = SearchModule;
-
-
-/***/ }),
-/* 28 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SearchService = exports.SearchOptions = exports.SearchResult = exports.SearchParams = void 0;
 const common_1 = __webpack_require__(4);
-const search_interface_1 = __webpack_require__(29);
+const search_interface_1 = __webpack_require__(28);
 Object.defineProperty(exports, "SearchParams", ({ enumerable: true, get: function () { return search_interface_1.SearchParams; } }));
 Object.defineProperty(exports, "SearchResult", ({ enumerable: true, get: function () { return search_interface_1.SearchResult; } }));
 Object.defineProperty(exports, "SearchOptions", ({ enumerable: true, get: function () { return search_interface_1.SearchOptions; } }));
@@ -805,7 +782,7 @@ exports.SearchService = SearchService;
 
 
 /***/ }),
-/* 29 */
+/* 28 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -813,7 +790,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ }),
-/* 30 */
+/* 29 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -830,7 +807,7 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AppController = void 0;
 const common_1 = __webpack_require__(4);
-const app_service_1 = __webpack_require__(31);
+const app_service_1 = __webpack_require__(30);
 let AppController = class AppController {
     constructor(appService) {
         this.appService = appService;
@@ -853,7 +830,7 @@ exports.AppController = AppController;
 
 
 /***/ }),
-/* 31 */
+/* 30 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -878,7 +855,7 @@ exports.AppService = AppService;
 
 
 /***/ }),
-/* 32 */
+/* 31 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -891,21 +868,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AuthModule = void 0;
 const common_1 = __webpack_require__(4);
-const passport_1 = __webpack_require__(33);
-const jwt_1 = __webpack_require__(34);
+const passport_1 = __webpack_require__(32);
+const jwt_1 = __webpack_require__(33);
 const config_1 = __webpack_require__(5);
-const auth_service_1 = __webpack_require__(35);
-const local_strategy_1 = __webpack_require__(44);
-const jwt_strategy_1 = __webpack_require__(46);
-const auth_controller_1 = __webpack_require__(48);
-const user_module_1 = __webpack_require__(51);
-const salesforce_module_1 = __webpack_require__(55);
+const auth_service_1 = __webpack_require__(34);
+const local_strategy_1 = __webpack_require__(37);
+const jwt_strategy_1 = __webpack_require__(39);
+const auth_controller_1 = __webpack_require__(41);
+const user_module_1 = __webpack_require__(44);
 let AuthModule = class AuthModule {
 };
 AuthModule = __decorate([
     common_1.Module({
         imports: [
-            salesforce_module_1.SalesforceModule,
             passport_1.PassportModule,
             common_1.forwardRef(() => user_module_1.UserModule),
             jwt_1.JwtModule.registerAsync({
@@ -926,19 +901,19 @@ exports.AuthModule = AuthModule;
 
 
 /***/ }),
-/* 33 */
+/* 32 */
 /***/ ((module) => {
 
 module.exports = require("@nestjs/passport");
 
 /***/ }),
-/* 34 */
+/* 33 */
 /***/ ((module) => {
 
 module.exports = require("@nestjs/jwt");
 
 /***/ }),
-/* 35 */
+/* 34 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -951,20 +926,18 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a, _b, _c, _d;
+var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AuthService = void 0;
 const common_1 = __webpack_require__(4);
-const jwt_1 = __webpack_require__(34);
-const crypto = __webpack_require__(36);
-const user_service_1 = __webpack_require__(37);
+const jwt_1 = __webpack_require__(33);
+const crypto = __webpack_require__(35);
+const user_service_1 = __webpack_require__(36);
 const config_1 = __webpack_require__(5);
-const salesforce_service_1 = __webpack_require__(38);
 let AuthService = class AuthService {
-    constructor(userService, jwtService, salesforceService, configService) {
+    constructor(userService, jwtService, configService) {
         this.userService = userService;
         this.jwtService = jwtService;
-        this.salesforceService = salesforceService;
         this.configService = configService;
     }
     async validateUser(username, password) {
@@ -986,12 +959,6 @@ let AuthService = class AuthService {
             user: user
         };
     }
-    getOAuth2AuthorizationUrl() {
-        return this.salesforceService.getOAuth2AuthorizationUrl();
-    }
-    oauth2SetAccesCode(accessCode) {
-        this.salesforceService.oauth2SetAccesCode(accessCode);
-    }
     hashString(str, salt = '', rounds = 16) {
         for (let i = 0; i < rounds; i++)
             str = this.sha256(str + salt);
@@ -1006,19 +973,19 @@ let AuthService = class AuthService {
 };
 AuthService = __decorate([
     common_1.Injectable(),
-    __metadata("design:paramtypes", [typeof (_a = typeof user_service_1.UserService !== "undefined" && user_service_1.UserService) === "function" ? _a : Object, typeof (_b = typeof jwt_1.JwtService !== "undefined" && jwt_1.JwtService) === "function" ? _b : Object, typeof (_c = typeof salesforce_service_1.SalesforceService !== "undefined" && salesforce_service_1.SalesforceService) === "function" ? _c : Object, typeof (_d = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _d : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof user_service_1.UserService !== "undefined" && user_service_1.UserService) === "function" ? _a : Object, typeof (_b = typeof jwt_1.JwtService !== "undefined" && jwt_1.JwtService) === "function" ? _b : Object, typeof (_c = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _c : Object])
 ], AuthService);
 exports.AuthService = AuthService;
 
 
 /***/ }),
-/* 36 */
+/* 35 */
 /***/ ((module) => {
 
 module.exports = require("crypto");
 
 /***/ }),
-/* 37 */
+/* 36 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1040,8 +1007,8 @@ exports.UserService = void 0;
 const common_1 = __webpack_require__(4);
 const mongoose_1 = __webpack_require__(10);
 const config_1 = __webpack_require__(5);
-const auth_service_1 = __webpack_require__(35);
-const search_1 = __webpack_require__(26);
+const auth_service_1 = __webpack_require__(34);
+const search_1 = __webpack_require__(25);
 const utility_1 = __webpack_require__(11);
 const database_1 = __webpack_require__(7);
 let UserService = class UserService {
@@ -1227,390 +1194,7 @@ exports.UserService = UserService;
 
 
 /***/ }),
-/* 38 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var _a, _b;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SalesforceService = void 0;
-const utility_1 = __webpack_require__(11);
-const common_1 = __webpack_require__(4);
-const config_1 = __webpack_require__(5);
-const JSForce = __webpack_require__(39);
-const application_service_1 = __webpack_require__(40);
-const settings_service_1 = __webpack_require__(43);
-let SalesforceService = class SalesforceService {
-    constructor(_configService, settingsService) {
-        this._configService = _configService;
-        this.settingsService = settingsService;
-        this.logger = new utility_1.LoggerService('SalesforceService');
-        this.configService = _configService;
-        this.oauth2 = new JSForce.OAuth2({
-            loginUrl: this.configService.get('SALESFORCE_URL'),
-            clientId: this.configService.get('SALESFORCE_CLIENT_ID'),
-            clientSecret: this.configService.get('SALESFORCE_CLIENT_SECRET_ID'),
-            redirectUri: `${this.configService.get('SALESFORCE_REDIRECT_URI')}`
-        });
-        this.createConnection();
-    }
-    async createConnection() {
-        const accessToken = await this.settingsService.getSettingsByName('accessToken');
-        const refreshToken = await this.settingsService.getSettingsByName('refreshToken');
-        const instanceUrl = await this.settingsService.getSettingsByName('instanceUrl');
-        if (accessToken && instanceUrl) {
-            if (refreshToken && refreshToken.value) {
-                this.connection = new JSForce.Connection({
-                    oauth2: this.oauth2,
-                    instanceUrl: instanceUrl.value,
-                    refreshToken: refreshToken.value,
-                    accessToken: accessToken.value
-                });
-            }
-            else {
-                this.connection = new JSForce.Connection({
-                    oauth2: this.oauth2,
-                    instanceUrl: instanceUrl.value,
-                    accessToken: accessToken.value
-                });
-                this.logger.debug('Created new refresh token: ' + refreshToken);
-                this.settingsService.saveSettings({ name: 'refreshToken', value: this.connection.refreshToken });
-            }
-        }
-    }
-    async authorize(accessCode) {
-        this.logger.debug('SalesforceService.authorize: start');
-        this.connection = new JSForce.Connection({ oauth2: this.oauth2 });
-        const result = await this.connection.authorize(accessCode, (err, userInfo) => {
-            if (err) {
-                return this.logger.error('SalesforceService.authorize: err=%o', err);
-            }
-            this.settingsService.saveSettings({ name: 'accessToken', value: this.connection.accessToken });
-            this.settingsService.saveSettings({ name: 'refreshToken', value: this.connection.refreshToken });
-            this.settingsService.saveSettings({ name: 'instanceUrl', value: this.connection.instanceUrl });
-            this.logger.debug('SalesforceService.authorize: userInfo=%o', userInfo);
-        });
-    }
-    getOAuth2AuthorizationUrl() {
-        return this.oauth2.getAuthorizationUrl({});
-    }
-    oauth2SetAccesCode(accessCode) {
-        this.authorize(accessCode);
-    }
-    async addApplication(response) {
-        const sfObject = this.buildSalesforceApplicationObject(response);
-        const result = await this.connection.sobject("Application__c").create(sfObject, (err, ret) => {
-            if (err || !ret.success) {
-                return this.logger.error('SalesforceService.addApplication: err=%o ', err);
-            }
-            this.logger.debug('SalesforceService.addApplication: Created record id : %o', ret.id);
-        });
-        if (result.success) {
-            return result.id;
-        }
-        return null;
-    }
-    buildSalesforceApplicationObject(response) {
-        var _a, _b, _c, _d, _e;
-        let salesforceApplicationObject = {};
-        response.questionAnswers.map((qa) => {
-            var _a, _b, _c, _d, _e;
-            const question = application_service_1.ApplicationService.findQuestionByQuestionKey(response.application, qa.questionKey);
-            if (!question)
-                return;
-            const salesforceKey = question === null || question === void 0 ? void 0 : question.salesforceKey;
-            const questionKey = question === null || question === void 0 ? void 0 : question.key;
-            switch (questionKey) {
-                case 'jobTitle':
-                    salesforceApplicationObject['Title__c'] = qa.answer;
-                    break;
-                case 'companyName':
-                    salesforceApplicationObject['Company_Name__c'] = qa.answer;
-            }
-            if (!salesforceKey)
-                return;
-            switch (salesforceKey) {
-                case 'Previous_Address__c':
-                    salesforceApplicationObject['Previous_Address__c'] = (_a = response.questionAnswers.find((qa) => qa.questionKey === 'address.street1')) === null || _a === void 0 ? void 0 : _a.answer;
-                    salesforceApplicationObject['Previous_Address_2__c'] = (_b = response.questionAnswers.find((qa) => qa.questionKey === 'address.street2')) === null || _b === void 0 ? void 0 : _b.answer;
-                    salesforceApplicationObject['Previous_City__c'] = (_c = response.questionAnswers.find((qa) => qa.questionKey === 'address.city')) === null || _c === void 0 ? void 0 : _c.answer;
-                    salesforceApplicationObject['Previous_State__c'] = (_d = response.questionAnswers.find((qa) => qa.questionKey === 'address.state')) === null || _d === void 0 ? void 0 : _d.answer;
-                    salesforceApplicationObject['Previous_Postal_Code__c'] = (_e = response.questionAnswers.find((qa) => qa.questionKey === 'address.zipcode')) === null || _e === void 0 ? void 0 : _e.answer;
-                    break;
-                default:
-                    salesforceApplicationObject[salesforceKey] = qa.answer;
-            }
-        });
-        salesforceApplicationObject.Name =
-            salesforceApplicationObject.First_Name__c + ' ' + salesforceApplicationObject.Last_Name__c;
-        salesforceApplicationObject.UTM_Campaign_Source__c = (_a = response.utmCodes) === null || _a === void 0 ? void 0 : _a.utm_source;
-        salesforceApplicationObject.UTM_Campaign_Medium__c = (_b = response.utmCodes) === null || _b === void 0 ? void 0 : _b.utm_medium;
-        salesforceApplicationObject.UTM_Campaign_Content__c = (_c = response.utmCodes) === null || _c === void 0 ? void 0 : _c.utm_content;
-        salesforceApplicationObject.UTM_Campaign_Name__c = (_d = response.utmCodes) === null || _d === void 0 ? void 0 : _d.utm_campaign;
-        salesforceApplicationObject.UTM_Campaign_Term__c = (_e = response.utmCodes) === null || _e === void 0 ? void 0 : _e.utm_term;
-        salesforceApplicationObject.ga_session_id__c = response.ga_session_id;
-        return salesforceApplicationObject;
-    }
-};
-SalesforceService = __decorate([
-    common_1.Injectable(),
-    __metadata("design:paramtypes", [typeof (_a = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _a : Object, typeof (_b = typeof settings_service_1.SettingsService !== "undefined" && settings_service_1.SettingsService) === "function" ? _b : Object])
-], SalesforceService);
-exports.SalesforceService = SalesforceService;
-
-
-/***/ }),
-/* 39 */
-/***/ ((module) => {
-
-module.exports = require("jsforce");
-
-/***/ }),
-/* 40 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
-var _a, _b, _c;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ApplicationService = exports.ApplicationDocument = exports.Application = void 0;
-const common_1 = __webpack_require__(4);
-const mongoose_1 = __webpack_require__(10);
-const database_1 = __webpack_require__(7);
-const search_1 = __webpack_require__(26);
-const application_schema_1 = __webpack_require__(41);
-Object.defineProperty(exports, "Application", ({ enumerable: true, get: function () { return application_schema_1.Application; } }));
-Object.defineProperty(exports, "ApplicationDocument", ({ enumerable: true, get: function () { return application_schema_1.ApplicationDocument; } }));
-let ApplicationService = class ApplicationService {
-    constructor(applicationModel, documentService, searchService) {
-        this.applicationModel = applicationModel;
-        this.documentService = documentService;
-        this.searchService = searchService;
-    }
-    searchApplications(queryParams) {
-        return this.searchService.searchModelFromQueryParams(this.applicationModel, queryParams, {
-            filterFunction: async (params) => {
-                const query = { deleted: { $ne: true } };
-                if (!params.filter)
-                    return query;
-                if (params.filter.name)
-                    query.name = this.searchService.regexMatch(params.filter.name);
-                return query;
-            },
-            lean: true
-        });
-    }
-    getApplicationById(applicationId) {
-        return this.applicationModel.findById(applicationId).populate('company').exec();
-    }
-    saveApplication(application, savingUser) {
-        if (savingUser) {
-            if (!application._id) {
-                application.createUser = savingUser;
-                application.createDate = new Date();
-            }
-            else {
-                application.updateUser = savingUser;
-                application.updateDate = new Date();
-            }
-        }
-        return this.documentService.saveDocument(this.applicationModel, application);
-    }
-    async deleteApplicationById(applicationId, deletingUser) {
-        const application = await this.getApplicationById(applicationId);
-        if (!application)
-            throw new common_1.HttpException({ message: 'Application not found.', applicationId }, 404);
-        application.deleted = true;
-        application.deleteUser = deletingUser;
-        application.deleteDate = new Date();
-        return application.save();
-    }
-    async deleteApplicationPageById(applicationId, pageId, deletingUser) {
-        var _a;
-        const application = await this.getApplicationById(applicationId);
-        if (!application)
-            throw new common_1.HttpException({ message: 'Application not found.', applicationId }, 404);
-        const section = application.sections.find((s) => s.pages.find((p) => p._id.equals(pageId)));
-        if (!section)
-            throw new common_1.HttpException({ message: 'Page not found.', applicationId, pageId }, 404);
-        (_a = section.pages.id(pageId)) === null || _a === void 0 ? void 0 : _a.remove();
-        return application.save();
-    }
-    async deleteApplicationSectionById(applicationId, sectionId, deletingUser) {
-        var _a;
-        const application = await this.getApplicationById(applicationId);
-        if (!application)
-            throw new common_1.HttpException({ message: 'Application not found.', applicationId }, 404);
-        (_a = application.sections.id(sectionId)) === null || _a === void 0 ? void 0 : _a.remove();
-        return application.save();
-    }
-    static findQuestionByQuestionKey(application, questionKey) {
-        const section = application.sections.find((s) => s.pages.find((p) => p.questions.find((q) => q.key === questionKey)));
-        if (!section)
-            return null;
-        const page = section.pages.find((p) => p.questions.find((q) => q.key === questionKey));
-        if (!page)
-            return null;
-        return page.questions.find((q) => q.key === questionKey);
-    }
-};
-ApplicationService = __decorate([
-    common_1.Injectable(),
-    __param(0, mongoose_1.InjectModel('Application')),
-    __metadata("design:paramtypes", [typeof (_a = typeof database_1.mongoose !== "undefined" && database_1.mongoose.Model) === "function" ? _a : Object, typeof (_b = typeof database_1.DocumentService !== "undefined" && database_1.DocumentService) === "function" ? _b : Object, typeof (_c = typeof search_1.SearchService !== "undefined" && search_1.SearchService) === "function" ? _c : Object])
-], ApplicationService);
-exports.ApplicationService = ApplicationService;
-
-
-/***/ }),
-/* 41 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Application = exports.applicationSchema = void 0;
-const mongoose = __webpack_require__(8);
-const application_interface_1 = __webpack_require__(42);
-Object.defineProperty(exports, "Application", ({ enumerable: true, get: function () { return application_interface_1.Application; } }));
-const ObjectId = mongoose.Schema.Types.ObjectId;
-exports.applicationSchema = new mongoose.Schema({
-    name: String,
-    sections: [
-        {
-            order: Number,
-            title: String,
-            pages: [
-                {
-                    type: { type: String },
-                    order: Number,
-                    name: String,
-                    title: String,
-                    subTitle: String,
-                    questions: [
-                        {
-                            order: Number,
-                            type: { type: String },
-                            label: String,
-                            key: String,
-                            bullhornKey: String,
-                            salesforceKey: String,
-                            optional: Boolean,
-                            options: [
-                                {
-                                    order: Number,
-                                    value: mongoose.Schema.Types.Mixed,
-                                    label: String,
-                                    helperText: String,
-                                    nextPageName: String,
-                                    nextPageId: ObjectId
-                                }
-                            ]
-                        }
-                    ],
-                    heroImage: String,
-                    heroHtml: String,
-                    nextPageName: String,
-                    nextPageId: ObjectId
-                }
-            ]
-        }
-    ],
-    __v: { type: Number, select: false },
-    createDate: Date,
-    updateDate: Date,
-    createUser: { type: ObjectId, ref: 'User' },
-    updateUser: { type: ObjectId, ref: 'User' },
-    deleted: Boolean,
-    deleteDate: Date,
-    deleteUser: { type: ObjectId, ref: 'User' }
-}, {
-    minimize: false
-});
-
-
-/***/ }),
-/* 42 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-
-/***/ }),
-/* 43 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
-var _a, _b;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SettingsService = void 0;
-const common_1 = __webpack_require__(4);
-const mongoose_1 = __webpack_require__(10);
-const utility_1 = __webpack_require__(11);
-const database_1 = __webpack_require__(7);
-let SettingsService = class SettingsService {
-    constructor(settingsModel, documentService) {
-        this.settingsModel = settingsModel;
-        this.documentService = documentService;
-        this.logger = new utility_1.LoggerService('SettingsService');
-    }
-    async getSettingsByName(name) {
-        return this.settingsModel.findOne({ name: name }).exec();
-    }
-    async saveSettings(newSettings) {
-        const oldSettings = await this.getSettingsByName(newSettings.name);
-        if (!oldSettings) {
-            return this.documentService.saveDocument(this.settingsModel, newSettings);
-        }
-        else {
-            newSettings.createDate = oldSettings.createDate;
-            newSettings.updateDate = new Date();
-            return this.settingsModel.replaceOne({ _id: oldSettings._id }, newSettings);
-        }
-    }
-};
-SettingsService = __decorate([
-    common_1.Injectable(),
-    __param(0, mongoose_1.InjectModel('Settings')),
-    __metadata("design:paramtypes", [typeof (_a = typeof database_1.mongoose !== "undefined" && database_1.mongoose.Model) === "function" ? _a : Object, typeof (_b = typeof database_1.DocumentService !== "undefined" && database_1.DocumentService) === "function" ? _b : Object])
-], SettingsService);
-exports.SettingsService = SettingsService;
-
-
-/***/ }),
-/* 44 */
+/* 37 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1626,10 +1210,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LocalStrategy = void 0;
-const passport_local_1 = __webpack_require__(45);
-const passport_1 = __webpack_require__(33);
+const passport_local_1 = __webpack_require__(38);
+const passport_1 = __webpack_require__(32);
 const common_1 = __webpack_require__(4);
-const auth_service_1 = __webpack_require__(35);
+const auth_service_1 = __webpack_require__(34);
 let LocalStrategy = class LocalStrategy extends passport_1.PassportStrategy(passport_local_1.Strategy) {
     constructor(authService) {
         super({
@@ -1655,13 +1239,13 @@ exports.LocalStrategy = LocalStrategy;
 
 
 /***/ }),
-/* 45 */
+/* 38 */
 /***/ ((module) => {
 
 module.exports = require("passport-local");
 
 /***/ }),
-/* 46 */
+/* 39 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1677,10 +1261,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.JwtStrategy = void 0;
-const passport_jwt_1 = __webpack_require__(47);
-const passport_1 = __webpack_require__(33);
+const passport_jwt_1 = __webpack_require__(40);
+const passport_1 = __webpack_require__(32);
 const common_1 = __webpack_require__(4);
-const user_service_1 = __webpack_require__(37);
+const user_service_1 = __webpack_require__(36);
 const config_1 = __webpack_require__(5);
 let JwtStrategy = class JwtStrategy extends passport_1.PassportStrategy(passport_jwt_1.Strategy) {
     constructor(userService, configService) {
@@ -1705,13 +1289,13 @@ exports.JwtStrategy = JwtStrategy;
 
 
 /***/ }),
-/* 47 */
+/* 40 */
 /***/ ((module) => {
 
 module.exports = require("passport-jwt");
 
 /***/ }),
-/* 48 */
+/* 41 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1727,42 +1311,22 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b;
+var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AuthController = void 0;
 const common_1 = __webpack_require__(4);
-const config_1 = __webpack_require__(5);
-const local_auth_guard_1 = __webpack_require__(49);
-const auth_service_1 = __webpack_require__(35);
-const jwt_auth_guard_1 = __webpack_require__(50);
+const local_auth_guard_1 = __webpack_require__(42);
+const auth_service_1 = __webpack_require__(34);
+const jwt_auth_guard_1 = __webpack_require__(43);
 let AuthController = class AuthController {
-    constructor(authService, configService) {
+    constructor(authService) {
         this.authService = authService;
-        this.configService = configService;
     }
     login(req) {
         return this.authService.login(req.user);
     }
     getUser(req) {
         return req.user;
-    }
-    getOAuth2(req, res) {
-        res.redirect(this.authService.getOAuth2AuthorizationUrl());
-    }
-    getAccessToken(req, res) {
-        this.authService.oauth2SetAccesCode(req.query.code);
-        res.redirect(`${this.configService.get('FRONTEND_URL')}/admin/settings`);
-    }
-    getSfEnv() {
-        var url = this.authService.getOAuth2AuthorizationUrl();
-        if (url && url.indexOf('//') > -1)
-            url = url.substring(url.indexOf('//') + 2);
-        if (url.indexOf('/') > -1)
-            url = url.substring(0, url.indexOf('/'));
-        const info = {
-            name: url
-        };
-        return info;
     }
 };
 __decorate([
@@ -1781,37 +1345,15 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "getUser", null);
-__decorate([
-    common_1.Get('oauth2'),
-    __param(0, common_1.Request()),
-    __param(1, common_1.Response()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
-    __metadata("design:returntype", void 0)
-], AuthController.prototype, "getOAuth2", null);
-__decorate([
-    common_1.Get('getAccessToken'),
-    __param(0, common_1.Request()),
-    __param(1, common_1.Response()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
-    __metadata("design:returntype", void 0)
-], AuthController.prototype, "getAccessToken", null);
-__decorate([
-    common_1.Get('sfEnv'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], AuthController.prototype, "getSfEnv", null);
 AuthController = __decorate([
     common_1.Controller('auth'),
-    __metadata("design:paramtypes", [typeof (_a = typeof auth_service_1.AuthService !== "undefined" && auth_service_1.AuthService) === "function" ? _a : Object, typeof (_b = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _b : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof auth_service_1.AuthService !== "undefined" && auth_service_1.AuthService) === "function" ? _a : Object])
 ], AuthController);
 exports.AuthController = AuthController;
 
 
 /***/ }),
-/* 49 */
+/* 42 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1824,7 +1366,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LocalAuthGuard = void 0;
 const common_1 = __webpack_require__(4);
-const passport_1 = __webpack_require__(33);
+const passport_1 = __webpack_require__(32);
 let LocalAuthGuard = class LocalAuthGuard extends passport_1.AuthGuard('local') {
 };
 LocalAuthGuard = __decorate([
@@ -1834,7 +1376,7 @@ exports.LocalAuthGuard = LocalAuthGuard;
 
 
 /***/ }),
-/* 50 */
+/* 43 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1847,7 +1389,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.JwtAuthGuard = void 0;
 const common_1 = __webpack_require__(4);
-const passport_1 = __webpack_require__(33);
+const passport_1 = __webpack_require__(32);
 let JwtAuthGuard = class JwtAuthGuard extends passport_1.AuthGuard('jwt') {
     handleRequest(err, user, info) {
         if (err || !user) {
@@ -1863,7 +1405,7 @@ exports.JwtAuthGuard = JwtAuthGuard;
 
 
 /***/ }),
-/* 51 */
+/* 44 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1876,15 +1418,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserModule = void 0;
 const database_1 = __webpack_require__(7);
-const search_1 = __webpack_require__(26);
+const search_1 = __webpack_require__(25);
 const utility_1 = __webpack_require__(11);
 const common_1 = __webpack_require__(4);
 const common_2 = __webpack_require__(4);
 const mongoose_1 = __webpack_require__(10);
-const auth_module_1 = __webpack_require__(32);
-const user_controller_1 = __webpack_require__(52);
-const user_schema_1 = __webpack_require__(53);
-const user_service_1 = __webpack_require__(37);
+const auth_module_1 = __webpack_require__(31);
+const user_controller_1 = __webpack_require__(45);
+const user_schema_1 = __webpack_require__(46);
+const user_service_1 = __webpack_require__(36);
 let UserModule = class UserModule {
 };
 UserModule = __decorate([
@@ -1910,7 +1452,7 @@ exports.UserModule = UserModule;
 
 
 /***/ }),
-/* 52 */
+/* 45 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1930,9 +1472,9 @@ var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserController = void 0;
 const common_1 = __webpack_require__(4);
-const auth_service_1 = __webpack_require__(35);
-const jwt_auth_guard_1 = __webpack_require__(50);
-const user_service_1 = __webpack_require__(37);
+const auth_service_1 = __webpack_require__(34);
+const jwt_auth_guard_1 = __webpack_require__(43);
+const user_service_1 = __webpack_require__(36);
 let UserController = class UserController {
     constructor(userService, authService) {
         this.userService = userService;
@@ -2023,14 +1565,14 @@ exports.UserController = UserController;
 
 
 /***/ }),
-/* 53 */
+/* 46 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.User = exports.userSchema = void 0;
 const mongoose = __webpack_require__(8);
-const user_interface_1 = __webpack_require__(54);
+const user_interface_1 = __webpack_require__(47);
 Object.defineProperty(exports, "User", ({ enumerable: true, get: function () { return user_interface_1.User; } }));
 const ObjectId = mongoose.Schema.Types.ObjectId;
 exports.userSchema = new mongoose.Schema({
@@ -2059,7 +1601,7 @@ exports.userSchema = new mongoose.Schema({
 
 
 /***/ }),
-/* 54 */
+/* 47 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -2067,102 +1609,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ }),
-/* 55 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SalesforceModule = void 0;
-const common_1 = __webpack_require__(4);
-const salesforce_service_1 = __webpack_require__(38);
-const settings_module_1 = __webpack_require__(56);
-let SalesforceModule = class SalesforceModule {
-};
-SalesforceModule = __decorate([
-    common_1.Module({
-        imports: [settings_module_1.SettingsModule],
-        providers: [salesforce_service_1.SalesforceService],
-        exports: [salesforce_service_1.SalesforceService]
-    })
-], SalesforceModule);
-exports.SalesforceModule = SalesforceModule;
-
-
-/***/ }),
-/* 56 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SettingsModule = void 0;
-const database_1 = __webpack_require__(7);
-const utility_1 = __webpack_require__(11);
-const common_1 = __webpack_require__(4);
-const mongoose_1 = __webpack_require__(10);
-const settings_schema_1 = __webpack_require__(57);
-const settings_service_1 = __webpack_require__(43);
-let SettingsModule = class SettingsModule {
-};
-SettingsModule = __decorate([
-    common_1.Module({
-        imports: [
-            mongoose_1.MongooseModule.forFeature([
-                {
-                    name: 'Settings',
-                    schema: settings_schema_1.settingsSchema
-                }
-            ]),
-            utility_1.UtilityModule,
-            database_1.DatabaseModule
-        ],
-        exports: [settings_service_1.SettingsService],
-        providers: [settings_service_1.SettingsService]
-    })
-], SettingsModule);
-exports.SettingsModule = SettingsModule;
-
-
-/***/ }),
-/* 57 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Settings = exports.settingsSchema = void 0;
-const mongoose = __webpack_require__(8);
-const settings_interface_1 = __webpack_require__(58);
-Object.defineProperty(exports, "Settings", ({ enumerable: true, get: function () { return settings_interface_1.Settings; } }));
-exports.settingsSchema = new mongoose.Schema({
-    name: { type: String, index: true, unique: true },
-    value: String,
-    __v: { type: Number, select: false },
-    createDate: Date,
-    updateDate: Date,
-});
-
-
-/***/ }),
-/* 58 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-
-/***/ }),
-/* 59 */
+/* 48 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2177,14 +1624,14 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-__exportStar(__webpack_require__(60), exports);
-__exportStar(__webpack_require__(61), exports);
-__exportStar(__webpack_require__(63), exports);
-__exportStar(__webpack_require__(62), exports);
+__exportStar(__webpack_require__(49), exports);
+__exportStar(__webpack_require__(50), exports);
+__exportStar(__webpack_require__(52), exports);
+__exportStar(__webpack_require__(51), exports);
 
 
 /***/ }),
-/* 60 */
+/* 49 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2199,10 +1646,10 @@ exports.ProductModule = void 0;
 const common_1 = __webpack_require__(4);
 const mongoose_1 = __webpack_require__(10);
 const database_1 = __webpack_require__(7);
-const search_1 = __webpack_require__(26);
-const product_service_1 = __webpack_require__(61);
-const product_controller_1 = __webpack_require__(64);
-const product_schema_1 = __webpack_require__(62);
+const search_1 = __webpack_require__(25);
+const product_service_1 = __webpack_require__(50);
+const product_controller_1 = __webpack_require__(53);
+const product_schema_1 = __webpack_require__(51);
 let ProductModule = class ProductModule {
 };
 ProductModule = __decorate([
@@ -2217,7 +1664,7 @@ exports.ProductModule = ProductModule;
 
 
 /***/ }),
-/* 61 */
+/* 50 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2239,8 +1686,8 @@ exports.ProductService = exports.ProductDocument = exports.Product = void 0;
 const common_1 = __webpack_require__(4);
 const mongoose_1 = __webpack_require__(10);
 const database_1 = __webpack_require__(7);
-const search_1 = __webpack_require__(26);
-const product_schema_1 = __webpack_require__(62);
+const search_1 = __webpack_require__(25);
+const product_schema_1 = __webpack_require__(51);
 Object.defineProperty(exports, "Product", ({ enumerable: true, get: function () { return product_schema_1.Product; } }));
 Object.defineProperty(exports, "ProductDocument", ({ enumerable: true, get: function () { return product_schema_1.ProductDocument; } }));
 let ProductService = class ProductService {
@@ -2308,14 +1755,14 @@ exports.ProductService = ProductService;
 
 
 /***/ }),
-/* 62 */
+/* 51 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Product = exports.productSchema = void 0;
 const mongoose = __webpack_require__(8);
-const product_interface_1 = __webpack_require__(63);
+const product_interface_1 = __webpack_require__(52);
 Object.defineProperty(exports, "Product", ({ enumerable: true, get: function () { return product_interface_1.Product; } }));
 const ObjectId = mongoose.Schema.Types.ObjectId;
 exports.productSchema = new mongoose.Schema({
@@ -2334,7 +1781,7 @@ exports.productSchema = new mongoose.Schema({
 
 
 /***/ }),
-/* 63 */
+/* 52 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -2342,7 +1789,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ }),
-/* 64 */
+/* 53 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2362,8 +1809,8 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ProductController = void 0;
 const common_1 = __webpack_require__(4);
-const jwt_auth_guard_1 = __webpack_require__(50);
-const product_service_1 = __webpack_require__(61);
+const jwt_auth_guard_1 = __webpack_require__(43);
+const product_service_1 = __webpack_require__(50);
 let ProductController = class ProductController {
     constructor(productService) {
         this.productService = productService;
@@ -2422,7 +1869,7 @@ exports.ProductController = ProductController;
 
 
 /***/ }),
-/* 65 */
+/* 54 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2437,10 +1884,10 @@ exports.ApplicationModule = void 0;
 const common_1 = __webpack_require__(4);
 const mongoose_1 = __webpack_require__(10);
 const database_1 = __webpack_require__(7);
-const search_1 = __webpack_require__(26);
-const application_service_1 = __webpack_require__(40);
-const application_controller_1 = __webpack_require__(66);
-const application_schema_1 = __webpack_require__(41);
+const search_1 = __webpack_require__(25);
+const application_service_1 = __webpack_require__(55);
+const application_controller_1 = __webpack_require__(58);
+const application_schema_1 = __webpack_require__(56);
 let ApplicationModule = class ApplicationModule {
 };
 ApplicationModule = __decorate([
@@ -2455,7 +1902,179 @@ exports.ApplicationModule = ApplicationModule;
 
 
 /***/ }),
-/* 66 */
+/* 55 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ApplicationService = exports.ApplicationDocument = exports.Application = void 0;
+const common_1 = __webpack_require__(4);
+const mongoose_1 = __webpack_require__(10);
+const database_1 = __webpack_require__(7);
+const search_1 = __webpack_require__(25);
+const application_schema_1 = __webpack_require__(56);
+Object.defineProperty(exports, "Application", ({ enumerable: true, get: function () { return application_schema_1.Application; } }));
+Object.defineProperty(exports, "ApplicationDocument", ({ enumerable: true, get: function () { return application_schema_1.ApplicationDocument; } }));
+let ApplicationService = class ApplicationService {
+    constructor(applicationModel, documentService, searchService) {
+        this.applicationModel = applicationModel;
+        this.documentService = documentService;
+        this.searchService = searchService;
+    }
+    searchApplications(queryParams) {
+        return this.searchService.searchModelFromQueryParams(this.applicationModel, queryParams, {
+            filterFunction: async (params) => {
+                const query = { deleted: { $ne: true } };
+                if (!params.filter)
+                    return query;
+                if (params.filter.name)
+                    query.name = this.searchService.regexMatch(params.filter.name);
+                return query;
+            },
+            lean: true
+        });
+    }
+    getApplicationById(applicationId) {
+        return this.applicationModel.findById(applicationId).populate('company').exec();
+    }
+    saveApplication(application, savingUser) {
+        if (savingUser) {
+            if (!application._id) {
+                application.createUser = savingUser;
+                application.createDate = new Date();
+            }
+            else {
+                application.updateUser = savingUser;
+                application.updateDate = new Date();
+            }
+        }
+        return this.documentService.saveDocument(this.applicationModel, application);
+    }
+    async deleteApplicationById(applicationId, deletingUser) {
+        const application = await this.getApplicationById(applicationId);
+        if (!application)
+            throw new common_1.HttpException({ message: 'Application not found.', applicationId }, 404);
+        application.deleted = true;
+        application.deleteUser = deletingUser;
+        application.deleteDate = new Date();
+        return application.save();
+    }
+    async deleteApplicationPageById(applicationId, pageId, deletingUser) {
+        var _a;
+        const application = await this.getApplicationById(applicationId);
+        if (!application)
+            throw new common_1.HttpException({ message: 'Application not found.', applicationId }, 404);
+        const section = application.sections.find((s) => s.pages.find((p) => p._id.equals(pageId)));
+        if (!section)
+            throw new common_1.HttpException({ message: 'Page not found.', applicationId, pageId }, 404);
+        (_a = section.pages.id(pageId)) === null || _a === void 0 ? void 0 : _a.remove();
+        return application.save();
+    }
+    async deleteApplicationSectionById(applicationId, sectionId, deletingUser) {
+        var _a;
+        const application = await this.getApplicationById(applicationId);
+        if (!application)
+            throw new common_1.HttpException({ message: 'Application not found.', applicationId }, 404);
+        (_a = application.sections.id(sectionId)) === null || _a === void 0 ? void 0 : _a.remove();
+        return application.save();
+    }
+};
+ApplicationService = __decorate([
+    common_1.Injectable(),
+    __param(0, mongoose_1.InjectModel('Application')),
+    __metadata("design:paramtypes", [typeof (_a = typeof database_1.mongoose !== "undefined" && database_1.mongoose.Model) === "function" ? _a : Object, typeof (_b = typeof database_1.DocumentService !== "undefined" && database_1.DocumentService) === "function" ? _b : Object, typeof (_c = typeof search_1.SearchService !== "undefined" && search_1.SearchService) === "function" ? _c : Object])
+], ApplicationService);
+exports.ApplicationService = ApplicationService;
+
+
+/***/ }),
+/* 56 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Application = exports.applicationSchema = void 0;
+const mongoose = __webpack_require__(8);
+const application_interface_1 = __webpack_require__(57);
+Object.defineProperty(exports, "Application", ({ enumerable: true, get: function () { return application_interface_1.Application; } }));
+const ObjectId = mongoose.Schema.Types.ObjectId;
+exports.applicationSchema = new mongoose.Schema({
+    name: String,
+    sections: [
+        {
+            order: Number,
+            title: String,
+            pages: [
+                {
+                    type: { type: String },
+                    order: Number,
+                    name: String,
+                    title: String,
+                    subTitle: String,
+                    questions: [
+                        {
+                            order: Number,
+                            type: { type: String },
+                            label: String,
+                            key: String,
+                            bullhornKey: String,
+                            optional: Boolean,
+                            options: [
+                                {
+                                    order: Number,
+                                    value: mongoose.Schema.Types.Mixed,
+                                    label: String,
+                                    helperText: String,
+                                    nextPageName: String,
+                                    nextPageId: ObjectId
+                                }
+                            ]
+                        }
+                    ],
+                    heroImage: String,
+                    heroHtml: String,
+                    nextPageName: String,
+                    nextPageId: ObjectId
+                }
+            ]
+        }
+    ],
+    __v: { type: Number, select: false },
+    createDate: Date,
+    updateDate: Date,
+    createUser: { type: ObjectId, ref: 'User' },
+    updateUser: { type: ObjectId, ref: 'User' },
+    deleted: Boolean,
+    deleteDate: Date,
+    deleteUser: { type: ObjectId, ref: 'User' }
+}, {
+    minimize: false
+});
+
+
+/***/ }),
+/* 57 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ }),
+/* 58 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2475,8 +2094,8 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ApplicationController = void 0;
 const common_1 = __webpack_require__(4);
-const jwt_auth_guard_1 = __webpack_require__(50);
-const application_service_1 = __webpack_require__(40);
+const jwt_auth_guard_1 = __webpack_require__(43);
+const application_service_1 = __webpack_require__(55);
 let ApplicationController = class ApplicationController {
     constructor(applicationService) {
         this.applicationService = applicationService;
@@ -2561,7 +2180,7 @@ exports.ApplicationController = ApplicationController;
 
 
 /***/ }),
-/* 67 */
+/* 59 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2574,7 +2193,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BullhornModule = void 0;
 const common_1 = __webpack_require__(4);
-const bullhorn_service_1 = __webpack_require__(68);
+const bullhorn_service_1 = __webpack_require__(60);
 let BullhornModule = class BullhornModule {
 };
 BullhornModule = __decorate([
@@ -2587,7 +2206,7 @@ exports.BullhornModule = BullhornModule;
 
 
 /***/ }),
-/* 68 */
+/* 60 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2606,7 +2225,7 @@ exports.BullhornService = void 0;
 const utility_1 = __webpack_require__(11);
 const common_1 = __webpack_require__(4);
 const config_1 = __webpack_require__(5);
-const bullhorn_api_1 = __webpack_require__(69);
+const bullhorn_api_1 = __webpack_require__(61);
 let BullhornService = class BullhornService {
     constructor(configService) {
         this.configService = configService;
@@ -2617,6 +2236,7 @@ let BullhornService = class BullhornService {
             username: this.configService.get('BULLHORN_USERNAME'),
             password: this.configService.get('BULLHORN_PASSWORD')
         });
+        this.login();
     }
     async login() {
         const result = await this.bullhorn.login().catch((err) => {
@@ -2626,6 +2246,7 @@ let BullhornService = class BullhornService {
     }
     async testBullhorn() {
         const loginResult = await this.bullhorn.login();
+        console.log('testBullhorn: Login successful');
         const candidateId = 48165;
         console.log('candidateId=%o', candidateId);
     }
@@ -2680,13 +2301,13 @@ exports.BullhornService = BullhornService;
 
 
 /***/ }),
-/* 69 */
+/* 61 */
 /***/ ((module) => {
 
 module.exports = require("bullhorn-api");
 
 /***/ }),
-/* 70 */
+/* 62 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2699,20 +2320,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ApplicationResponseModule = void 0;
 const common_1 = __webpack_require__(4);
-const application_response_service_1 = __webpack_require__(71);
-const application_response_controller_1 = __webpack_require__(75);
+const application_response_service_1 = __webpack_require__(63);
+const application_response_controller_1 = __webpack_require__(68);
 const database_1 = __webpack_require__(7);
-const search_1 = __webpack_require__(26);
+const search_1 = __webpack_require__(25);
 const mongoose_1 = __webpack_require__(10);
-const application_response_schema_1 = __webpack_require__(72);
-const bullhorn_module_1 = __webpack_require__(67);
-const salesforce_module_1 = __webpack_require__(55);
+const application_response_schema_1 = __webpack_require__(65);
+const bullhorn_module_1 = __webpack_require__(59);
 const utility_1 = __webpack_require__(11);
 let ApplicationResponseModule = class ApplicationResponseModule {
 };
 ApplicationResponseModule = __decorate([
     common_1.Module({
-        imports: [database_1.DatabaseModule, mongoose_1.MongooseModule.forFeature([{ name: 'ApplicationResponse', schema: application_response_schema_1.applicationResponseSchema }]), search_1.SearchModule, bullhorn_module_1.BullhornModule, salesforce_module_1.SalesforceModule, utility_1.UtilityModule],
+        imports: [database_1.DatabaseModule, mongoose_1.MongooseModule.forFeature([{ name: 'ApplicationResponse', schema: application_response_schema_1.applicationResponseSchema }]), search_1.SearchModule, bullhorn_module_1.BullhornModule, utility_1.UtilityModule],
         controllers: [application_response_controller_1.ApplicationResponseController],
         providers: [application_response_service_1.ApplicationResponseService],
         exports: [application_response_service_1.ApplicationResponseService]
@@ -2722,7 +2342,7 @@ exports.ApplicationResponseModule = ApplicationResponseModule;
 
 
 /***/ }),
-/* 71 */
+/* 63 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2744,46 +2364,38 @@ exports.ApplicationResponseService = exports.ApplicationResponseDocument = expor
 const common_1 = __webpack_require__(4);
 const mongoose_1 = __webpack_require__(10);
 const schedule_1 = __webpack_require__(6);
+const luxon_1 = __webpack_require__(64);
 const database_1 = __webpack_require__(7);
-const search_1 = __webpack_require__(26);
+const search_1 = __webpack_require__(25);
 const utility_1 = __webpack_require__(11);
-const application_response_schema_1 = __webpack_require__(72);
+const application_response_schema_1 = __webpack_require__(65);
 Object.defineProperty(exports, "ApplicationResponse", ({ enumerable: true, get: function () { return application_response_schema_1.ApplicationResponse; } }));
 Object.defineProperty(exports, "ApplicationResponseDocument", ({ enumerable: true, get: function () { return application_response_schema_1.ApplicationResponseDocument; } }));
-const salesforce_service_1 = __webpack_require__(38);
-const application_1 = __webpack_require__(73);
+const bullhorn_service_1 = __webpack_require__(60);
 const config_1 = __webpack_require__(5);
 let ApplicationResponseService = class ApplicationResponseService {
-    constructor(responseModel, documentService, searchService, salesforceService, configService, postmarkService) {
+    constructor(responseModel, documentService, searchService, bullhornService, configService, postmarkService) {
         this.responseModel = responseModel;
         this.documentService = documentService;
         this.searchService = searchService;
-        this.salesforceService = salesforceService;
+        this.bullhornService = bullhornService;
         this.configService = configService;
         this.postmarkService = postmarkService;
         this.logger = new utility_1.LoggerService('ApplicationResponse');
         setTimeout(() => this.resubmitResponses(), 5000);
     }
     async resubmitResponses() {
-        var processed = 0;
-        var responseLength = 1;
-        while (responseLength > 0) {
-            var responses = await this.responseModel.find({
-                status: 'submitted',
-                $or: [
-                    { salesforceApplicationId: { $exists: false } },
-                ]
-            }, null, { skip: processed, limit: 100 });
-            responseLength = responses.length;
-            processed += responses.length;
-            for (const response of responses) {
-                await this.submitResponseToBullhornAndSalesforce(response).catch((err) => {
-                    this.logger.error('resubmitResponses: submitResponseToBullhornAndSalesforce err=%o', err);
-                    return null;
-                });
-            }
-        }
-        this.logger.log('resubmitResponses: processed ' + processed);
+        const responses = await this.responseModel.find({
+            status: 'submitted',
+            $or: [{ bullhornCandidateId: { $exists: false } }, { bullhornJobSubId: { $exists: false } }]
+        });
+        this.logger.log('resubmitResponses: responses=%o', responses.length);
+        return utility_1.serialPromise(responses, (response) => {
+            return this.submitResponseToBullhorn(response).catch((err) => {
+                this.logger.error('resubmitResponses: submitResponseToBullhorn err=%o', err);
+                return null;
+            });
+        });
     }
     searchResponses(queryParams) {
         return this.searchService.searchModelFromQueryParams(this.responseModel, queryParams, {
@@ -2829,20 +2441,7 @@ let ApplicationResponseService = class ApplicationResponseService {
             `<hr><pre>${JSON.stringify(response.questionAnswers)}</pre>`;
         this.postmarkService.sendEmail({
             to,
-            subject: 'Tulsa Remote - Failed Bullhorn Submission',
-            html
-        });
-    }
-    onFailedSalesforceSubmission(response, error) {
-        const to = this.configService.get('FAILED_SALESFORCE_EMAIL');
-        if (!to)
-            return;
-        const html = `<p>Salesforce Failed with Error: <pre>${JSON.stringify(error)}</pre></p>` +
-            `<hr><p>applicationResponseId: ${response._id}</p><hr>` +
-            `<hr><pre>${JSON.stringify(response.questionAnswers)}</pre>`;
-        this.postmarkService.sendEmail({
-            to,
-            subject: 'Tulsa Remote - Failed Salesforce Submission',
+            subject: 'Tulsa Remote - Failed Submission',
             html
         });
     }
@@ -2852,39 +2451,103 @@ let ApplicationResponseService = class ApplicationResponseService {
         });
     }
     async afterSave(newDoc, oldDoc) {
+        this.logger.log('saveResponse: %o', Object.assign(Object.assign({}, newDoc.toObject()), { application: undefined, questionAnswers: newDoc.questionAnswers.map((qa) => `${qa.questionKey}: ${qa.answer}`) }));
         if (newDoc.status === 'submitted' && (oldDoc === null || oldDoc === void 0 ? void 0 : oldDoc.status) !== 'submitted')
-            this.submitResponseToBullhornAndSalesforce(newDoc);
+            this.submitResponseToBullhorn(newDoc);
     }
-    async submitResponseToBullhornAndSalesforce(response) {
-        this.prependHttpsForUrlQuestions(response);
-        const salesforcePromise = this.submitResponseToSalesforce(response);
-        await Promise.all([salesforcePromise]);
-    }
-    async submitResponseToSalesforce(response) {
-        try {
-            if (!response.salesforceApplicationId) {
-                const salesforceApplicationId = await this.salesforceService.addApplication(response);
-                if (salesforceApplicationId) {
-                    response.status = 'processed';
-                    response.salesforceApplicationId = salesforceApplicationId;
-                    response.updateDate = new Date();
-                    return response.save();
-                }
-            }
-        }
-        catch (err) {
-            this.onFailedSalesforceSubmission(response, (err === null || err === void 0 ? void 0 : err.stack) || err);
-        }
-    }
-    prependHttpsForUrlQuestions(response) {
+    async submitResponseToBullhorn(response) {
+        this.logger.log('submitResponseToBullhorn: %o', Object.assign(Object.assign({}, response.toObject()), { application: undefined, questionAnswers: response.questionAnswers.map((qa) => `${qa.questionKey}: ${qa.answer}`) }));
+        const candidate = {
+            status: 'New Applicant'
+        };
+        const appNoteLines = [];
+        const partnerNoteLines = [];
+        const responseNoteLines = [];
         response.questionAnswers.map((qa) => {
-            const question = application_1.ApplicationService.findQuestionByQuestionKey(response.application, qa.questionKey);
+            var _a, _b, _c, _d, _e;
+            const question = this.findQuestionByQuestionKey(response.application, qa.questionKey);
             if (!question)
                 return;
             if (question.type === 'url' && qa.answer) {
                 qa.answer = `https://${qa.answer}`;
             }
+            const bullhornKey = question === null || question === void 0 ? void 0 : question.bullhornKey;
+            if (!bullhornKey)
+                return;
+            const noteLine = `<b>${question.label || question.key}</b><br>${qa.answerLabel || qa.answer}`;
+            responseNoteLines.push(noteLine);
+            switch (bullhornKey) {
+                case 'dateOfBirth':
+                    candidate['dateOfBirth'] = luxon_1.DateTime.fromISO(qa.answer).toMillis();
+                    break;
+                case 'customDate12':
+                    candidate['customDate12'] = luxon_1.DateTime.fromISO(qa.answer).toMillis();
+                    break;
+                case 'note.application':
+                    appNoteLines.push(noteLine);
+                    break;
+                case 'note.partner':
+                    partnerNoteLines.push(noteLine);
+                    break;
+                case 'secondaryAddress':
+                    candidate['secondaryAddress'] = {
+                        address1: (_a = response.questionAnswers.find((qa) => qa.questionKey === 'address.street1')) === null || _a === void 0 ? void 0 : _a.answer,
+                        address2: (_b = response.questionAnswers.find((qa) => qa.questionKey === 'address.street2')) === null || _b === void 0 ? void 0 : _b.answer,
+                        city: (_c = response.questionAnswers.find((qa) => qa.questionKey === 'address.city')) === null || _c === void 0 ? void 0 : _c.answer,
+                        state: (_d = response.questionAnswers.find((qa) => qa.questionKey === 'address.state')) === null || _d === void 0 ? void 0 : _d.answer,
+                        zip: (_e = response.questionAnswers.find((qa) => qa.questionKey === 'address.zipcode')) === null || _e === void 0 ? void 0 : _e.answer
+                    };
+                    break;
+                default:
+                    candidate[bullhornKey] = qa.answer;
+            }
         });
+        const appNote = appNoteLines.join('<br><br>');
+        const partnerNote = partnerNoteLines.join('<br><br>');
+        const responseNote = responseNoteLines.join('<br><br>');
+        try {
+            if (!response.bullhornCandidateId) {
+                const candidateId = await this.bullhornService.addCandidate(candidate);
+                this.logger.log('submitResponseToBullhorn: candidateId=%o', candidateId);
+                if (candidateId) {
+                    const appNoteId = await this.bullhornService.addCandidateNote(candidateId, 'Application Note', appNote);
+                    this.logger.log('submitResponseToBullhorn: appNoteId=%o', appNoteId);
+                    if (partnerNote) {
+                        const partnerNoteId = await this.bullhornService.addCandidateNote(candidateId, 'Partner Note', partnerNote);
+                        this.logger.log('submitResponseToBullhorn: partnerNoteId=%o', partnerNoteId);
+                    }
+                    if (Object.keys(response.utmCodes).length) {
+                        const utmNoteId = await this.bullhornService.addCandidateNote(candidateId, 'UTM Note', JSON.stringify(response.utmCodes));
+                        this.logger.log('submitResponseToBullhorn: utmCodes=%o, utmNoteId=%o', response.utmCodes, utmNoteId);
+                    }
+                    const responseNoteId = await this.bullhornService.addCandidateNote(candidateId, 'Entire Application', responseNote);
+                    this.logger.log('submitResponseToBullhorn: responseNoteId=%o', responseNoteId);
+                    response.bullhornCandidateId = candidateId;
+                }
+            }
+            const jobId = +this.configService.get('BULLHORN_JOBID') || 66;
+            this.logger.debug('submitResponseToBullhorn: jobId=%o', jobId);
+            if (jobId && response.bullhornCandidateId && !response.bullhornJobSubId) {
+                response.bullhornJobSubId = await this.bullhornService.addJobSubmission(response.bullhornCandidateId, jobId);
+                this.logger.log('submitResponseToBullhorn: bullhornJobSubId=%o', response.bullhornJobSubId);
+            }
+            if (response.bullhornCandidateId || response.bullhornJobSubId) {
+                response.updateDate = new Date();
+                return response.save();
+            }
+        }
+        catch (err) {
+            this.onFailedBullhornSubmission(response, responseNote, (err === null || err === void 0 ? void 0 : err.stack) || err);
+        }
+    }
+    findQuestionByQuestionKey(application, questionKey) {
+        const section = application.sections.find((s) => s.pages.find((p) => p.questions.find((q) => q.key === questionKey)));
+        if (!section)
+            return null;
+        const page = section.pages.find((p) => p.questions.find((q) => q.key === questionKey));
+        if (!page)
+            return null;
+        return page.questions.find((q) => q.key === questionKey);
     }
 };
 __decorate([
@@ -2896,21 +2559,27 @@ __decorate([
 ApplicationResponseService = __decorate([
     common_1.Injectable(),
     __param(0, mongoose_1.InjectModel('ApplicationResponse')),
-    __metadata("design:paramtypes", [typeof (_a = typeof database_1.mongoose !== "undefined" && database_1.mongoose.Model) === "function" ? _a : Object, typeof (_b = typeof database_1.DocumentService !== "undefined" && database_1.DocumentService) === "function" ? _b : Object, typeof (_c = typeof search_1.SearchService !== "undefined" && search_1.SearchService) === "function" ? _c : Object, typeof (_d = typeof salesforce_service_1.SalesforceService !== "undefined" && salesforce_service_1.SalesforceService) === "function" ? _d : Object, typeof (_e = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _e : Object, typeof (_f = typeof utility_1.PostmarkService !== "undefined" && utility_1.PostmarkService) === "function" ? _f : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof database_1.mongoose !== "undefined" && database_1.mongoose.Model) === "function" ? _a : Object, typeof (_b = typeof database_1.DocumentService !== "undefined" && database_1.DocumentService) === "function" ? _b : Object, typeof (_c = typeof search_1.SearchService !== "undefined" && search_1.SearchService) === "function" ? _c : Object, typeof (_d = typeof bullhorn_service_1.BullhornService !== "undefined" && bullhorn_service_1.BullhornService) === "function" ? _d : Object, typeof (_e = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _e : Object, typeof (_f = typeof utility_1.PostmarkService !== "undefined" && utility_1.PostmarkService) === "function" ? _f : Object])
 ], ApplicationResponseService);
 exports.ApplicationResponseService = ApplicationResponseService;
 
 
 /***/ }),
-/* 72 */
+/* 64 */
+/***/ ((module) => {
+
+module.exports = require("luxon");
+
+/***/ }),
+/* 65 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ApplicationResponse = exports.applicationResponseSchema = void 0;
 const mongoose = __webpack_require__(8);
-const application_1 = __webpack_require__(73);
-const application_response_interface_1 = __webpack_require__(74);
+const application_1 = __webpack_require__(66);
+const application_response_interface_1 = __webpack_require__(67);
 Object.defineProperty(exports, "ApplicationResponse", ({ enumerable: true, get: function () { return application_response_interface_1.ApplicationResponse; } }));
 const ObjectId = mongoose.Schema.Types.ObjectId;
 exports.applicationResponseSchema = new mongoose.Schema({
@@ -2929,7 +2598,6 @@ exports.applicationResponseSchema = new mongoose.Schema({
     ],
     bullhornCandidateId: Number,
     bullhornJobSubId: Number,
-    salesforceApplicationId: String,
     bummerEmail: String,
     __v: { type: Number, select: false },
     createDate: Date,
@@ -2943,7 +2611,7 @@ exports.applicationResponseSchema = new mongoose.Schema({
 
 
 /***/ }),
-/* 73 */
+/* 66 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2958,14 +2626,14 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-__exportStar(__webpack_require__(65), exports);
-__exportStar(__webpack_require__(40), exports);
-__exportStar(__webpack_require__(42), exports);
-__exportStar(__webpack_require__(41), exports);
+__exportStar(__webpack_require__(54), exports);
+__exportStar(__webpack_require__(55), exports);
+__exportStar(__webpack_require__(57), exports);
+__exportStar(__webpack_require__(56), exports);
 
 
 /***/ }),
-/* 74 */
+/* 67 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -2973,7 +2641,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ }),
-/* 75 */
+/* 68 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2993,8 +2661,8 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ApplicationResponseController = void 0;
 const common_1 = __webpack_require__(4);
-const jwt_auth_guard_1 = __webpack_require__(50);
-const application_response_service_1 = __webpack_require__(71);
+const jwt_auth_guard_1 = __webpack_require__(43);
+const application_response_service_1 = __webpack_require__(63);
 let ApplicationResponseController = class ApplicationResponseController {
     constructor(responseService) {
         this.responseService = responseService;
@@ -3090,8 +2758,6 @@ async function bootstrap() {
     const port = +configService.get('PORT') || 5000;
     await app.listen(port);
     logger.log('Listening on port %o', port);
-    const postmarkService = app.get(utility_1.PostmarkService);
-    logger.log('got postmark ' + postmarkService);
 }
 bootstrap();
 

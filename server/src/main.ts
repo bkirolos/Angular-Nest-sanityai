@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { json } from 'body-parser';
 import { AppModule } from './app.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { LoggerService, PostmarkService  } from '@app/utility';
+import { LoggerService } from '@app/utility';
 
 const logger = new LoggerService('Main');
 
@@ -18,7 +18,5 @@ async function bootstrap() {
 	const port = +configService.get('PORT') || 5000;
 	await app.listen(port);
 	logger.log('Listening on port %o', port);
-	const postmarkService = app.get(PostmarkService);
-	logger.log('got postmark ' + postmarkService);
 }
 bootstrap();

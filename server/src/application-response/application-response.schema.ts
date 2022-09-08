@@ -10,7 +10,6 @@ export const applicationResponseSchema = new mongoose.Schema(
 		status: String,
 		lastPage: String,
 		ipAddress: String,
-		gaSessionId: String,
 
 		application: applicationSchema,
 		questionAnswers: [
