@@ -103,6 +103,14 @@ export class ApplicationComponent implements OnInit {
 			this.answers[qa.questionKey] = qa.answer;
 		});
 		this.response.utmCodes = this.applicationService.utm_codes;
+		
+		var cookies = document.cookie.split(';');
+		for (var i = 0; i < cookies.length; ++i) {
+			var kvp = cookies[i].split('=');
+			if (kvp[0].trim().startsWith('_ga_')) {
+				this.response.gaSessionId = kvp[1].split('.')[2];
+			}
+		}
 		console.log('ApplicationComponent.loadResponse: response=%o, utm_codes=%o', this.response, this.applicationService.utm_codes);
 
 		if (this.response.lastPage) {

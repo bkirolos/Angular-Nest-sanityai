@@ -24,6 +24,7 @@ export interface ApplicationResponse {
 	utmCodes: UtmCodes;
 	lastPage?: string;
 	ipAddress?: string;
+	gaSessionId?: string;
 
 	application: Application;
 	questionAnswers: ApplicationResponseQuestionAnswer[];
