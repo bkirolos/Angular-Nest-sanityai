@@ -65,7 +65,7 @@ export class PostmarkService {
 		this.logger.log('sendEmail: to=%o, subject=%o', params.to, params.subject);
 		if (!params) return Promise.reject({ error: 'mailer.sendEmail(): Missing params' });
 		const msg = {
-			to: params.to,
+			to: params.to.split(','),
 			from: params.from,
 			subject: params.subject,
 			html: params.html,
@@ -113,7 +113,7 @@ export class PostmarkService {
 		});
 
 		return this.sendEmail({
-			to: options.to,
+			to: options.to.split(','),
 			from: options.from,
 			subject: options.subject,
 			html: html

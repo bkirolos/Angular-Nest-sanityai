@@ -92,7 +92,8 @@ export class SalesforceService {
 			sfObject, 
 			(err, ret)  => {
 			  if (err || !ret.success) { 
-			  	return this.logger.error('SalesforceService.addApplication: err=%o ', err);
+			  	this.logger.error('SalesforceService.addApplication: err=%o ', err);
+				return err;
 			  }
 			  this.logger.debug('SalesforceService.addApplication: Created record id : %o', ret.id);
 			}

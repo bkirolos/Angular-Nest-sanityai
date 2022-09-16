@@ -107,6 +107,7 @@ export class ApplicationResponseService {
 
 	onFailedSalesforceSubmission(response: ApplicationResponse, error: any) {
 		//console.log('Salesforce failed with error: ' + JSON.stringify(error));
+
 		const to = this.configService.get('FAILED_SALESFORCE_EMAIL');
 		if (!to) return;
 
@@ -154,14 +155,25 @@ export class ApplicationResponseService {
 			if (!response.salesforceApplicationId) {
 				const salesforceApplicationId = await this.salesforceService.addApplication(response);
 
-				if (salesforceApplicationId) {
+				if (salesforceApplicationId && typeof salesforceApplicationId === 'string') {
 					response.status = 'processed';
 					response.salesforceApplicationId = salesforceApplicationId;
 					response.updateDate = new Date();
 					return response.save();
+				} else {
+					this.onFailedSalesforceSubmission(response, salesforceApplicationId);
+					response.status = 'rejected';
+					response.salesforceApplicationId = 'error';
+					response.updateDate = new Date();
+					return response.save();
 				}
+				
 			}
 		} catch (err) {
+			response.status = 'rejected';
+			response.salesforceApplicationId = 'error';
+			response.updateDate = new Date();
+			response.save();
 			this.onFailedSalesforceSubmission(response, err?.stack || err);
 		}
 	}
