@@ -133,7 +133,7 @@ export class ApplicationComponent implements OnInit {
 		});
 		this.response.utmCodes = this.applicationService.utm_codes;
 		this.response.application = this.application;
-		this.response.lastPage = this.page.title;
+		this.response.lastPage = this.page.name;
 		this.response.updateDate = new Date();
 		
 		var cookies = document.cookie.split(';');
@@ -415,7 +415,7 @@ export class ApplicationComponent implements OnInit {
 	async rejectResponse() {
 		var prevPage = this.response.lastPage;
 		this.response.status = 'rejected';
-		this.response.lastPage = this.page.title;
+		this.response.lastPage = this.page.name;
 		this.response = await this.responseService.submitResponse(this.response);
 		console.log('rejectResponse: response=%o', this.response);
 		this.saveResponse();

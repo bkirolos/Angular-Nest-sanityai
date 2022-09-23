@@ -137,6 +137,7 @@
 
 		<div class="buttons px-4" *ngIf="page.type !== 'reject' && page.type !== 'submit' && page.name !== 'welcome'">
 			<button class="btn --plain-link" (click)="onPrevBtn()">Back</button>
+			<small *ngIf="page.name == '33a'" class="helperText">Tulsa Remote will not receive your application until the 'Submit' button is pressed.</small>
 			<button class="btn --next" (click)="onNextBtn()" [disabled]="!canNext || !inputReady || nextPageLoading">
 				<span *ngIf="page.name == '33a'; else next">Submit</span>
 				<ng-template #next> Next </ng-template>
