@@ -136,13 +136,22 @@ export class ApplicationComponent implements OnInit {
 		this.response.lastPage = this.page.name;
 		this.response.updateDate = new Date();
 		
+		console.log('onNextBtn cookie ' + document.cookie);
+		this.response.gaSessionId = '';
+		
 		var cookies = document.cookie.split(';');
 		for (var i = 0; i < cookies.length; ++i) {
 			var kvp = cookies[i].split('=');
 			if (kvp[0].trim().startsWith('_ga_')) {
-				this.response.gaSessionId = kvp[1].split('.')[2];
+			console.log('found ga cookie ' + kvp[0] + ' value ' + kvp[1]);
+				if (!this.response.gaSessionId)
+					this.response.gaSessionId = kvp[1].split('.')[2] + ':' + kvp[0].trim() + ':' + kvp[1];
+				else
+					this.response.gaSessionId = this.response.gaSessionId + ":" + kvp[1].split('.')[2] + ':' + kvp[0].trim() + ':' + kvp[1];
 			}
 		}
+
+		console.log('ression id: ' + this.response.gaSessionId);
 
 		console.log('ApplicationComponent.saveResponse: response=%o', this.response);
 		this.response = await this.responseService.submitResponse(this.response);
@@ -245,6 +254,23 @@ export class ApplicationComponent implements OnInit {
 				this.answers['employmentType'] = 'Full Time Employee';
 			}
 		}
+		console.log('onNextBtn cookie ' + document.cookie);
+		this.response.gaSessionId = '';
+		
+		var cookies = document.cookie.split(';');
+		for (var i = 0; i < cookies.length; ++i) {
+			var kvp = cookies[i].split('=');
+			if (kvp[0].trim().startsWith('_ga_')) {
+			console.log('found ga cookie ' + kvp[0] + ' value ' + kvp[1]);
+				if (!this.response.gaSessionId)
+					this.response.gaSessionId = kvp[1].split('.')[2] + ':' + kvp[0].trim() + ':' + kvp[1];
+				else
+					this.response.gaSessionId = this.response.gaSessionId + ":" + kvp[1].split('.')[2] + ':' + kvp[0].trim() + ':' + kvp[1];
+			}
+		}
+
+		console.log('ression id: ' + this.response.gaSessionId);
+
 
 		this.nextPageLoading = true;
 		await this.saveResponse();
